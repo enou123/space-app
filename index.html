@@ -363,7 +363,7 @@
   <div class="row" id="rowStep"><span class="lab">少しずつ動かす</span><div class="btns"><button class="step" data-dt="-1">◀ 1日</button><button class="step" data-dt="-0.0416666667">◀ 1時間</button><button class="step" data-dt="-0.0069444444">◀ 10分</button><button class="step" data-dt="0.0069444444">10分 ▶</button><button class="step" data-dt="0.0416666667">1時間 ▶</button><button class="step" data-dt="1">1日 ▶</button>
     <span class="hint">日時は日本時間。選んだら Enter キーまたは「この日時へ」</span></div></div>
   <div class="row"><span class="lab">天文ショー</span><div class="btns"><button id="bSolPrev">◀ 日食</button><button id="bSolNext">日食 ▶</button><button id="bLunPrev">◀ 月食</button><button id="bLunNext">月食 ▶</button><button id="bLightF" class="tour">光の旅（早送り）</button><button id="bLightR" class="tour">光の旅（実時間）</button></div></div>
-  <div class="row"><span class="lab">今の空</span><div class="btns"><button id="bNowSky" class="accent">今の空（松山・現在時刻）</button><button id="bNowSkyAtlanta" class="accent">今の空（アトランタ・現在時刻）</button></div></div>
+  <div class="row"><span class="lab">今の空</span><div class="btns"><button id="bNowSky" class="accent">今の空（松山・現在時刻）</button><button id="bNowSkyHere" class="accent">今の空（現在地・現在時刻）</button><button id="bNowSkyKumamoto" class="accent">今の空（熊本・現在時刻）</button><button id="bNowSkyAtlanta" class="accent">今の空（アトランタ・現在時刻）</button></div></div>
   <div class="row"><span class="lab">探査機の旅</span><div class="btns" id="ptRow"><button id="bPtAll" class="tour">外惑星探査（1972〜1990）</button></div></div>
   <div class="row" id="rowFar"><span class="lab">遠くへ</span><div class="btns"><button id="bComet" class="accent">長周期彗星を落とす</button><button id="bOort" class="accent">オールトの雲まで</button><button id="bStarView" class="accent">近傍恒星まで</button><button id="bGalaxyView" class="accent">銀河系まで</button><button id="bLocalView" class="accent">局所銀河群まで</button></div></div>
   <div class="row sep" id="rowStereo"><span class="lab">立体視</span><div class="btns">
@@ -378,7 +378,7 @@
   <div class="row"><span class="lab">太陽系の視点</span><div class="btns"><button data-fo="-1" class="on">太陽系全体</button><button id="bTop">黄道面を真上から</button></div></div>
   <div class="row" id="rowPV"><span class="lab">惑星の視点</span><div class="btns"><button id="bOrbitView" class="on" title="追尾中の惑星のまわりを回って見る">惑星のまわりから見る</button><button id="bSurface" title="追尾中の惑星（初期は地球・松山）の地面に立って空を見る">地表から空を見る</button></div></div>
   <div id="surfRow" style="display:none;">
-    <div class="row"><span class="lab">緯度</span><div class="btns"><input id="latIn" type="range" min="-80" max="80" step="0.1" value="33.8" style="width:150px;"><span id="latVal" class="val">北緯33.8°</span></div></div>
+    <div class="row"><span class="lab">緯度</span><div class="btns"><input id="latIn" type="range" min="-90" max="90" step="0.1" value="33.8" style="width:150px;"><span id="latVal" class="val">北緯33.8°</span></div></div>
     <div class="row"><span class="lab">経度</span><div class="btns"><input id="lonIn" type="range" min="-180" max="180" step="0.1" value="132.8" style="width:150px;"><span id="lonVal" class="val">東経132.8°</span></div></div></div>
   <div class="row" id="surfRow2" style="display:none;"><span class="lab">地表から</span><div class="btns"><button id="bLookMoon">月を見る</button><button id="bLookSun">太陽を見る</button><button id="bFovReset">視野を戻す</button><button id="bTrack" title="太陽や月を画面の中央に保ちます（ドラッグで解除）">追尾</button><button id="bStorm">磁気嵐（オーロラ拡大）</button></div></div>
   <div class="row" id="rowFollow"><span class="lab">惑星を追尾</span><div class="btns" id="followRow"></div></div>
@@ -1055,6 +1055,7 @@
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
   const earthColorImage=new Image();
   earthColorImage.onload=()=>{
+    try{
     // 低いテクスチャ上限の端末にも合わせる（2048未満なら縮小）。
     const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
     let src=earthColorImage;
@@ -1068,6 +1069,7 @@
     const aniso=gl.getExtension("EXT_texture_filter_anisotropic")||gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
     if(aniso) gl.texParameterf(gl.TEXTURE_2D,aniso.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(4,gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
     gl.activeTexture(gl.TEXTURE0); earthColorReady=1; canvas.dataset.earthColor="ready";
+    }catch(e){ gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false); gl.activeTexture(gl.TEXTURE0); canvas.dataset.earthColor="fallback"; }
   };
   earthColorImage.onerror=()=>{ canvas.dataset.earthColor="fallback"; };
   earthColorImage.src="assets/textures/earth-blue-marble-2048.jpg";
@@ -1930,7 +1932,7 @@
   let speed=1,moonScale=1.0,moonScaleCur=1.0;
   let surfUp=[0,1,0],surfSunAlt=0,skyDay=0;
   /* 地球の地表視点は、実際の時刻・緯度経度で空を再現する（観察地点の初期値は松山） */
-  const MATSU_LAT=33.84, MATSU_LON=132.77, ATLANTA_LAT=33.749, ATLANTA_LON=-84.388, REAL_SPEED=YEAR_SEC/(YEAR_DAYS*86400);
+  const MATSU_LAT=33.84, MATSU_LON=132.77, ATLANTA_LAT=33.749, ATLANTA_LON=-84.388, KUMAMOTO_LAT=32.8031, KUMAMOTO_LON=130.7079, REAL_SPEED=YEAR_SEC/(YEAR_DAYS*86400);
   const POLE_ECL=[0,Math.sin(66.5607*DEG),Math.cos(66.5607*DEG)];
   const pt={on:false,only:-1,y0:0,y1:0,base:1,prevSpeed:1,endAt:0,evs:[]};
   const probeOn=(i)=>!pt.on?true:(pt.only<0?!PROBES[i].jpn:pt.only===i);
@@ -1962,7 +1964,7 @@
      動かさずに離したときだけ、天体名のクリック（解説表示）として扱う。 */
   let downX=0,downY=0,dragMoved=false;
   const touchesOnStage=new Map(); let touchPair=null,touchFrame=0;
-  function beginDrag(e){ if(e.pointerType==="touch"&&touchesOnStage.size>1) return; if(tourActive||lt.on||e.button>2) return;
+  function beginDrag(e){ cancelCurrentLocation(); if(e.pointerType==="touch"&&touchesOnStage.size>1) return; if(tourActive||lt.on||e.button>2) return;
     mode=(e.button===1||e.ctrlKey||e.shiftKey)?2:1; canvas.classList.toggle("panning",mode===2);
     lx=downX=e.clientX; ly=downY=e.clientY; dragMoved=false; e.preventDefault();
     const sel=window.getSelection&&window.getSelection(); if(sel&&sel.removeAllRanges) sel.removeAllRanges(); }
@@ -2098,7 +2100,8 @@
     const tb=$("infoTable"); tb.innerHTML="";
     (rows||[]).forEach(r=>{ const tr=document.createElement("tr");
       tr.innerHTML='<td class="k">'+r[0]+'</td><td class="v">'+r[1]+'</td>'; tb.appendChild(tr); });
-    infoBox.classList.add("show"); }
+    infoBox.classList.add("show");
+    if(mobileQuery.matches&&panelHidden) setMobileInfo(true); }
   function bindInfo(el,cat,key,src,en){ const d=INFO[src]&&INFO[src][key]; if(!d) return;
     el.classList.add("hit");
     el.addEventListener("click",ev=>{ ev.stopPropagation(); if(dragMoved) return;
@@ -2124,7 +2127,7 @@
     document.querySelectorAll("[data-sc]").forEach(x=>x.classList.remove("on")); b.classList.add("on");
     if(followIdx>=0||followMoon||followProbe>=0) setTimeout(refocus,260);
     else { cam.td=scaleMode===0?78:(scaleMode===1?AU_UNIT*34:AU_UNIT*3.2); surfaceMode=false; updateViewUI(); pan[0]=pan[1]=pan[2]=0; } }; });
-  function resetView(){ surfOverride=null; followIdx=-1; followMoon=null; followProbe=-1; followStar=-1; starLookSun=false; starFlight=null; setFollowUI(); surfaceMode=false; updateViewUI(); pan[0]=pan[1]=pan[2]=0; hideInfo(); }
+  function resetView(){ cancelCurrentLocation(); surfOverride=null; followIdx=-1; followMoon=null; followProbe=-1; followStar=-1; starLookSun=false; starFlight=null; setFollowUI(); surfaceMode=false; updateViewUI(); pan[0]=pan[1]=pan[2]=0; hideInfo(); }
   function setScale0(){ scaleMode=0; scaleBlend=0; rebuildScale();
     document.querySelectorAll("[data-sc]").forEach(x=>x.classList.toggle("on",x.dataset.sc==="0")); }
   $("bTop").onclick=()=>{ resetView(); cam.tph=0.09; cam.td=118; };
@@ -2142,11 +2145,15 @@
   const dateIn=$("dateIn");
   // 入力欄は、PCのタイムゾーン設定に関係なく常に日本時間で扱う
   function setDateInput(d){ const z=(n)=>String(n).padStart(2,"0"), j=new Date(d.getTime()+9*3600e3);
-    dateIn.value=j.getUTCFullYear()+"-"+z(j.getUTCMonth()+1)+"-"+z(j.getUTCDate())+"T"+z(j.getUTCHours())+":"+z(j.getUTCMinutes()); }
+    dateIn.value=String(j.getUTCFullYear()).padStart(4,"0")+"-"+z(j.getUTCMonth()+1)+"-"+z(j.getUTCDate())+"T"+z(j.getUTCHours())+":"+z(j.getUTCMinutes()); }
   setDateInput(new Date());
   function gotoDate(){ const v=dateIn.value; const m=/^(\d{4,})-(\d\d)-(\d\d)T(\d\d):(\d\d)/.exec(v);
-    if(!m){ toast("日時を選んでください",3); return; } nowLock=false;
-    const ms=Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5])-9*3600e3; years=yearsSinceJ2000(ms);
+    if(!m){ toast("日時を選んでください",3); return; }
+    const localDate=new Date(0); localDate.setUTCFullYear(+m[1],+m[2]-1,+m[3]);
+    localDate.setUTCHours(+m[4],+m[5],0,0);
+    const ms=localDate.getTime()-9*3600e3;
+    if(!Number.isFinite(ms)){ toast("有効な日時を選んでください",3); return; }
+    nowLock=false; years=yearsSinceJ2000(ms);
     toast("指定日時へ移動しました：<b>"+fmtJST(ms)+"</b>（日本時間）",4); }
   $("bGo").onclick=gotoDate;
   dateIn.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); gotoDate(); } });
@@ -2167,7 +2174,7 @@
   function setFollowUI(){
     if(followIdx>=0||followMoon||followProbe>=0){ followStar=-1; starLookSun=false; starFlight=null; }
     document.querySelectorAll("[data-fo]").forEach(x=>{ const v=parseInt(x.dataset.fo,10);
-      x.classList.toggle("on", v===followIdx && followProbe<0); });
+      x.classList.toggle("on", v===followIdx && followProbe<0 && !followMoon && followStar<0); });
     document.querySelectorAll("[data-fp]").forEach(x=>{ x.classList.toggle("on",parseInt(x.dataset.fp,10)===followProbe); });
     $("moonTravelSelect").value=followMoon?followMoon.body+":"+followMoon.moon:"";
     $("starTravelSelect").value=followStar>=0?String(followStar):"";
@@ -2223,7 +2230,11 @@
     $("bLookMoon").textContent=followMoon?"母惑星を見る":"月を見る";
     $("surfRow2").querySelector(".lab").textContent=followMoon?"衛星の空から":"地表から";
     $("surfRow").style.display=surfaceMode?"":"none"; $("surfRow2").style.display=surfaceMode?"":"none";
-    if(!surfaceMode&&trackOn){ trackOn=false; updateTrackUI(); } }
+    if((trackTarget==="host"&&!followMoon)||(trackTarget==="moon"&&followIdx!==2)){
+      trackTarget=followMoon?"host":"sun"; trackOn=false;
+    }
+    if(!surfaceMode){ trackOn=false; aimTarget=null; }
+    updateTrackUI(); }
   /* ---- 自動追尾（v23）：太陽・月を画面の中央に保つ。ドラッグで解除、「追尾」ボタンで再開 ---- */
   const TRACK_JP={sun:"太陽",moon:"月",host:"母惑星"};
   function updateTrackUI(){ const b=$("bTrack"); if(!b) return; b.classList.toggle("on",trackOn);
@@ -2265,7 +2276,7 @@
   }
   function updateDisplayedClock(){
     const shownMs=J2000_MS+years*YEAR_DAYS*86400000;
-    const atAtlanta=surfaceMode&&Math.abs(obsLat-ATLANTA_LAT)<0.00001&&Math.abs(obsLon-ATLANTA_LON)<0.00001;
+    const atAtlanta=surfaceMode&&followIdx===2&&!followMoon&&Math.abs(obsLat-ATLANTA_LAT)<0.00001&&Math.abs(obsLon-ATLANTA_LON)<0.00001;
     $("simDate").textContent=fmtJST(shownMs)+"（日本時間）"+(atAtlanta?" （アトランタ "+fmtAtlanta(shownMs)+"）":"");
   }
   /* ---- 操作パネルの開閉（状態は記憶）---- */
@@ -2311,7 +2322,7 @@
   /* ---- 地表から月・太陽を見る ---- */
   function goSurfaceEarth(){ if(!(surfaceMode&&followIdx===2)){ followIdx=2; followMoon=null; followProbe=-1; setFollowUI();
       pan[0]=pan[1]=pan[2]=0; surfaceMode=true; updateViewUI(); } }
-  $("bLookMoon").onclick=()=>{ if(followMoon){ $("bSurface").click(); aimTarget="host"; } else { goSurfaceEarth(); aimTarget="moon"; }
+  $("bLookMoon").onclick=()=>{ if(followMoon){ if(!surfaceMode) $("bSurface").click(); aimTarget="host"; } else { goSurfaceEarth(); aimTarget="moon"; }
     surfFovT=2.6; };
   $("bLookSun").onclick=()=>{ if(!surfaceMode){ if(followMoon) $("bSurface").click(); else goSurfaceEarth(); } aimTarget="sun"; surfFovT=3.2; };
   $("bFovReset").onclick=()=>{ surfFovT=FOV_SURF_DEG; };
@@ -2328,7 +2339,7 @@
     const ev=findEclipse(kind,now+dir*3*86400000,dir);
     if(!ev){ toast("この先に見つかりませんでした"); return; }
     years=yearsSinceJ2000(ev.t-(kind==="solar"?80:110)*60000);
-    setScale0(); followIdx=2; followMoon=null; followProbe=-1; setFollowUI(); pan[0]=pan[1]=pan[2]=0;
+    resetView(); setScale0(); followIdx=2; followMoon=null; followProbe=-1; setFollowUI(); pan[0]=pan[1]=pan[2]=0;
     surfaceMode=true; updateViewUI(); nowLock=false; aimTarget=(kind==="solar")?"sun":"moon";
     obsLat=ev.geo.lat; obsLon=ev.geo.lon; surfLat=Math.round(ev.geo.lat);
     syncObserverInputs();
@@ -2338,7 +2349,7 @@
     panelHidden=true; applyPanel(false); }
   /* ---- 今の空（都市プリセット・現在時刻）---- */
   function showCurrentSky(cityName, lat, lon){
-    if(tourActive) endTour(); if(lt.on) endLight(); if(pt.on) endProbeTour(); setScale0();
+    if(tourActive) endTour(); if(lt.on) endLight(); if(pt.on) endProbeTour(); resetView(); setScale0();
     followIdx=2; followMoon=null; followProbe=-1; setFollowUI(); pan[0]=pan[1]=pan[2]=0; surfaceMode=true; updateViewUI();
     obsLat=lat; obsLon=lon; surfLat=lat; syncObserverInputs();
     showConst=true; $("bConst").classList.add("on");
@@ -2347,6 +2358,38 @@
     toast("<b>今の空（"+cityName+"）</b>　いまこの瞬間の空を、実際の時刻どおりに表示しています。<br>速度ボタンを押すと時間を進められます（例：「1時間＝5秒」）。",8);
   }
   $("bNowSky").onclick=()=>showCurrentSky("松山",MATSU_LAT,MATSU_LON);
+  let locationRequestId=0, locationPending=false;
+  const currentLocationButton=$("bNowSkyHere");
+  function finishCurrentLocation(){ locationPending=false; currentLocationButton.disabled=false;
+    currentLocationButton.textContent="今の空（現在地・現在時刻）"; }
+  function cancelCurrentLocation(){ if(locationPending){ locationRequestId++; finishCurrentLocation(); } }
+  currentLocationButton.onclick=()=>{
+    if(!window.isSecureContext){ toast("現在地はHTTPSの公開アプリ、またはlocalhostから利用できます。",7); return; }
+    if(!navigator.geolocation){ toast("このブラウザでは現在地を取得できません。都市ボタンか緯度・経度で観測地点を選んでください。",7); return; }
+    const request=++locationRequestId; locationPending=true; currentLocationButton.disabled=true;
+    currentLocationButton.textContent="現在地を取得中…";
+    navigator.geolocation.getCurrentPosition(position=>{
+      if(request!==locationRequestId) return;
+      const lat=position.coords.latitude,lon=position.coords.longitude;
+      finishCurrentLocation();
+      if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){
+        toast("現在地を確認できませんでした。都市ボタンか緯度・経度で観測地点を選んでください。",7); return; }
+      showCurrentSky("現在地："+fmtLat(lat)+"・"+fmtLon(lon),lat,lon);
+    },error=>{
+      if(request!==locationRequestId) return;
+      finishCurrentLocation();
+      const message=error.code===1?"位置情報の利用が許可されていません。ブラウザの位置情報設定を確認するか、都市ボタンで観測地点を選んでください。":
+        error.code===3?"現在地の取得が時間内に完了しませんでした。もう一度試すか、都市ボタンで観測地点を選んでください。":
+        "現在地を取得できませんでした。もう一度試すか、都市ボタンで観測地点を選んでください。";
+      toast(message,8);
+    },{enableHighAccuracy:false,timeout:10000,maximumAge:60000});
+  };
+  // 取得中に別の操作をしたら、その後の位置情報で視点を上書きしない。
+  $("panel").addEventListener("click",e=>{ const button=e.target.closest("button");
+    if(button&&button!==currentLocationButton) cancelCurrentLocation(); },true);
+  $("panel").addEventListener("change",cancelCurrentLocation,true);
+  canvas.addEventListener("pointerdown",cancelCurrentLocation);
+  $("bNowSkyKumamoto").onclick=()=>showCurrentSky("熊本",KUMAMOTO_LAT,KUMAMOTO_LON);
   $("bNowSkyAtlanta").onclick=()=>showCurrentSky("アトランタ",ATLANTA_LAT,ATLANTA_LON);
   /* ---- 探査機の旅（ズームアウト・ツアーと同じく「終了する」ボタン・Escキーで止められる）---- */
   const PT_SPAN={"ボイジャー1号":[1977,8,25,2013,1,1],"ボイジャー2号":[1977,8,5,1990,6,1],"パイオニア10号":[1972,2,15,1984,1,1],
