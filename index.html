@@ -3789,9 +3789,21 @@
           if(AST.lun.t>0&&AST.lun.rho<AST.lun.Rp+RM_KM*1.5) setLunarShadow(progMoonSky); else gl.uniform1f(progMoonSky.u.uShOn,0.0);
           gl.drawArrays(gl.TRIANGLES,0,6); }
         // 惑星：実際の位置関係から方向と明るさ（等級）を求め、光の点として描く
-        if(!followMoon){ const ob=BODIES[followIdx], obR=v3scale(v3norm(ob.pos),ob.rAU); glowSetup();
-          for(let k=0;k<BODIES.length;k++){ const bk=BODIES[k]; bk.skyVis=false; if(k===followIdx||!bk.pos) continue;
+        { const ob=surfaceHost||BODIES[followIdx];
+          let obR=v3scale(v3norm(ob.pos),ob.rAU);
+          if(followMoon){
+            // 表示用の縮尺や衛星倍率を除き、観測地点を実距離（AU）へ戻す。
+            const offset=v3sub(surfaceTarget.pos,ob.pos);
+            const moonKm=surfaceTarget.jp==="月"&&AST?v3len(AST.M):surfaceTarget.d*ob.radius;
+            obR=v3add(obR,v3scale(v3norm(offset),moonKm/AU_KM));
+            obR=v3add(obR,v3scale(v3sub(eye,surfaceTarget.pos),surfaceTarget.r/(surfaceTarget.R*AU_KM)));
+          }
+          const hostCos=followMoon?Math.cos(Math.asin(Math.min(0.97,ob.R/v3len(v3sub(ob.pos,surfaceTarget.pos))))):1;
+          glowSetup();
+          for(let k=0;k<BODIES.length;k++){ const bk=BODIES[k]; bk.skyVis=false; if(k===(followMoon?followMoon.body:followIdx)||!bk.pos) continue;
             const pr=v3scale(v3norm(bk.pos),bk.rAU), dv=v3sub(pr,obR), dist=v3len(dv), dir=v3scale(dv,1/dist);
+            // 母惑星の円盤の背後にある惑星を透かして描かない。
+            if(followMoon&&v3dot(dir,surfacePlanetDir)>hostCos) continue;
             const cosA=Math.max(-1,Math.min(1,v3dot(v3norm(v3scale(pr,-1)),v3scale(dir,-1)))), alpha=Math.acos(cosA)/DEG;
             const Hm=(PLANET_H[bk.jp]!==undefined)?PLANET_H[bk.jp]:5;
             const mag=Hm+5*Math.log10(bk.rAU*dist)+(k===0?0.038:k===1?0.013:0.005)*alpha;
