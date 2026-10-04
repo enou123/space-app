@@ -53,7 +53,7 @@
   #sceneTransition.on{ opacity:1; }
   #labels{ position:fixed; inset:0; pointer-events:none; overflow:hidden; }
   .lbl{ position:absolute; transform:translate(13px,-50%); font-size:11px; letter-spacing:.1em;
-    white-space:nowrap; color:#cfe0f5; text-shadow:0 0 8px rgba(0,0,0,.95); }
+    white-space:nowrap; color:#cfe0f5; text-shadow:0 0 8px rgba(0,0,0,.95); touch-action:none; }
   .lbl span{ color:#7f95b5; font-size:9.5px; margin-left:.6em; }
   .lbl::before{ content:""; position:absolute; left:-9px; top:50%; width:6px; height:1px;
     background:rgba(150,185,230,.6); }
@@ -2048,28 +2048,39 @@
   let downX=0,downY=0,dragMoved=false;
   const touchesOnStage=new Map(); let touchPair=null,touchFrame=0;
   function beginDrag(e){ cancelCurrentLocation(); if(e.pointerType==="touch"&&touchesOnStage.size>1) return; if(tourActive||lt.on||e.button>2) return;
+    gCam=null; gPan=0;
     mode=(e.button===1||e.ctrlKey||e.shiftKey)?2:1; canvas.classList.toggle("panning",mode===2);
     lx=downX=e.clientX; ly=downY=e.clientY; dragMoved=false; e.preventDefault();
     const sel=window.getSelection&&window.getSelection(); if(sel&&sel.removeAllRanges) sel.removeAllRanges(); }
   canvas.addEventListener("pointerdown",beginDrag);
   // iOS Safari のページ拡大ジェスチャーはキャンバス内で抑止し、アプリのピンチ操作へ渡す。
-  ["gesturestart","gesturechange","gestureend"].forEach(type=>canvas.addEventListener(type,e=>e.preventDefault(),{passive:false}));
+  const skyTouchTargets=[canvas,document.getElementById("labels")];
+  ["gesturestart","gesturechange","gestureend"].forEach(type=>skyTouchTargets.forEach(el=>el.addEventListener(type,e=>e.preventDefault(),{passive:false})));
   document.getElementById("labels").addEventListener("pointerdown",e=>{ if(e.target.closest&&e.target.closest(".lbl")) beginDrag(e); });
   const endDrag=()=>{ mode=0; canvas.classList.remove("panning"); };
   addEventListener("pointerup",endDrag); addEventListener("pointercancel",endDrag); addEventListener("blur",endDrag);
   addEventListener("dragstart",e=>e.preventDefault());
   canvas.addEventListener("auxclick",e=>e.preventDefault());
   canvas.addEventListener("contextmenu",e=>e.preventDefault());
+  function panCamera(dx,dy){
+    if(followIdx>=0||followMoon||followProbe>=0||followStar>=0||starFlight){
+      // 自由視点へ移るときも、現在見ている場所を中心として保つ。
+      pan[0]=focus[0]; pan[1]=focus[1]; pan[2]=focus[2];
+      if(starFlight){ cam.td=cam.d; cam.tph=cam.ph; cam.tth=cam.th; }
+      followIdx=-1; followMoon=null; followProbe=-1; followStar=-1; starLookSun=false; starFlight=null;
+      surfaceMode=false; setFollowUI(); updateViewUI();
+    }
+    const s=cam.d*0.0021,st=Math.sin(cam.th),ct=Math.cos(cam.th),sp=Math.sin(cam.ph),cp=Math.cos(cam.ph);
+    const right=[ct,0,-st],up=[-cp*st,sp,-cp*ct];
+    for(let k=0;k<3;k++) pan[k]+=right[k]*dx*s+up[k]*dy*s;
+  }
   addEventListener("pointermove",e=>{ if(e.pointerType==="touch"&&touchesOnStage.size>1) return; if(!mode||tourActive||lt.on) return;
     if(!(e.buttons&7)){ endDrag(); return; }
     if(Math.hypot(e.clientX-downX,e.clientY-downY)>4) dragMoved=true;
     const dx=e.clientX-lx,dy=e.clientY-ly;
     if(mode===1&&surfaceMode){ aimTarget=null; if(trackOn){ trackOn=false; updateTrackUI(); } const k=surfFov/FOV_SURF_DEG; surfYawT-=dx*0.004*k; surfPitchT=Math.max(-0.35,Math.min(1.5,surfPitchT+dy*0.003*k)); }
     else if(mode===1){ cam.tth+=dx*0.005; cam.tph=Math.max(0.05,Math.min(Math.PI-0.05,cam.tph-dy*0.004)); }
-    else { const s=cam.d*0.0021, st=Math.sin(cam.th),ct=Math.cos(cam.th),sp=Math.sin(cam.ph),cp=Math.cos(cam.ph);
-      const right=[ct,0,-st],up=[-cp*st,sp,-cp*ct];
-      for(let k=0;k<3;k++) pan[k]+=right[k]*dx*s+up[k]*dy*s;
-      if(followIdx>=0||followMoon||followProbe>=0){ followIdx=-1; followMoon=null; followProbe=-1; surfaceMode=false; setFollowUI(); updateViewUI(); } }
+    else if(!surfaceMode) panCamera(dx,dy);
     lx=e.clientX; ly=e.clientY; });
   canvas.addEventListener("wheel",e=>{ e.preventDefault(); if(tourActive||lt.on) return;
     if(surfaceMode&&(followIdx>=0||followMoon)){ surfFovT=Math.max(0.5,Math.min(100,surfFovT*(1+e.deltaY*0.0016))); return; }
@@ -2086,18 +2097,18 @@
     cam.td=Math.max(zmin,Math.min(zmax,cam.td*(1+e.deltaY*0.0016))); },{passive:false});
 
   // iPhone: two fingers move the camera target; changing their distance zooms.
-  // Track only contacts started on the sky canvas, never touches on the control panel.
+  // Track contacts started on the sky or its labels, never touches on the control panel.
   function pairMetrics(){
     const a=[...touchesOnStage.values()];
     return {x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2,
       distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y))};
   }
-  canvas.addEventListener("pointerdown",e=>{
+  skyTouchTargets.forEach(el=>el.addEventListener("pointerdown",e=>{
     if(e.pointerType!=="touch") return;
     touchesOnStage.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(touchesOnStage.size===2){ endDrag();touchPair=pairMetrics();dragMoved=true; }
     if(touchesOnStage.size>2){ touchPair=null; if(touchFrame) cancelAnimationFrame(touchFrame); touchFrame=0; }
-  });
+  }));
   function processTouchPair(){ touchFrame=0;
     if(touchesOnStage.size!==2||tourActive||lt.on) return;
     const next=pairMetrics();
@@ -2106,9 +2117,7 @@
     const shift=Math.hypot(dx,dy),spread=Math.abs(next.distance-touchPair.distance);
     // ピンチに伴う中心点の揺れは平行移動とみなさない。追尾中でも意図的な2本指移動は維持する。
     if(!surfaceMode&&shift>0.35&&spread<shift*0.8+0.2){
-      const k=cam.d*0.0021,st=Math.sin(cam.th),ct=Math.cos(cam.th),sp=Math.sin(cam.ph),cp=Math.cos(cam.ph);
-      const right=[ct,0,-st],up=[-cp*st,sp,-cp*ct];
-      for(let j=0;j<3;j++) pan[j]+=right[j]*dx*k+up[j]*dy*k;
+      panCamera(dx,dy);
     }
     if(Math.abs(next.distance-touchPair.distance)>0.2){
       const deltaY=-Math.log(next.distance/touchPair.distance)/0.0016;
@@ -2116,14 +2125,14 @@
     }
     touchPair=next;dragMoved=true;
   }
-  canvas.addEventListener("pointermove",e=>{
+  skyTouchTargets.forEach(el=>el.addEventListener("pointermove",e=>{
     if(e.pointerType!=="touch"||!touchesOnStage.has(e.pointerId)) return;
     touchesOnStage.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(touchesOnStage.size!==2||tourActive||lt.on) return;
     // 2つの pointermove を同じフレームで集約し、片指だけの途中座標で誤判定しない。
     if(!touchFrame) touchFrame=requestAnimationFrame(processTouchPair);
     e.preventDefault();
-  },{passive:false});
+  },{passive:false}));
   function releaseTouch(e){
     if(e.pointerType!=="touch") return;
     if(touchesOnStage.size===2) processTouchPair();
@@ -2297,7 +2306,7 @@
     toast("<b>"+BODIES[body].jp+"の衛星・"+m.jp+"</b>を追尾します。日時を進めると軌道に沿って移動します。",5);
   };
   document.querySelectorAll("[data-fo]").forEach(b=>{ b.onclick=()=>{ const i=parseInt(b.dataset.fo,10); surfOverride=null;
-    followIdx=i; followMoon=null; followProbe=-1; followStar=-1; starLookSun=false; setFollowUI(); updateViewUI(); pan[0]=pan[1]=pan[2]=0;
+    followIdx=i; followMoon=null; followProbe=-1; followStar=-1; starLookSun=false; starFlight=null; setFollowUI(); updateViewUI(); pan[0]=pan[1]=pan[2]=0;
     if(i>=0) focusOn(i); else { surfaceMode=false; updateViewUI(); cam.td=78; cam.tph=1.00; } }; });
   document.querySelectorAll("[data-fp]").forEach(b=>{ b.onclick=()=>{ const i=parseInt(b.dataset.fp,10);
     { const p=PROBES[i]; updateProbeWP(); if(!probeState(p,years)){ const w=p.wp.find(w=>w.stay)||p.wp[1]; years=w.t+0.1; prevYT=years;
@@ -2407,7 +2416,7 @@
   const onMobileChange=()=>{ syncMobileFocus(); resize(); };
   if(mobileQuery.addEventListener) mobileQuery.addEventListener("change",onMobileChange); else mobileQuery.addListener(onMobileChange);
   addEventListener("orientationchange",()=>setTimeout(onMobileChange,120));
-  addEventListener("keydown",e=>{ if((e.key==="h"||e.key==="H")&&!(e.target&&e.target.tagName==="INPUT")){ dismissWelcome(); panelHidden=!panelHidden; applyPanel(); } });
+  addEventListener("keydown",e=>{ if((e.key==="h"||e.key==="H")&&!(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))){ dismissWelcome(); panelHidden=!panelHidden; applyPanel(); } });
   addEventListener("keydown",e=>{ if((e.key==="c"||e.key==="C")&&!(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))){ dismissWelcome(); setCinemaMode(!document.body.classList.contains("cinema-mode")); } });
   applyPanel();
   /* ---- 地表から月・太陽を見る ---- */
@@ -2882,9 +2891,9 @@
     $("gTimer").style.display=gAuto?"":"none"; }
   function startGuideAuto(){ startGuide(); setAuto(true); }
   function captureGuideView(){ guideViewBase=Object.fromEntries(["#bGalaxy","#bLocal","#bHalo","#bStars","#bGlob","#bConst","#bAster","#bGrid","#bMW","#bProbe"].map(sel=>[sel,document.querySelector(sel).classList.contains("on")])); }
-  function startSpect(list,name,auto){ GUIDE=list; gName=name; GUIDE_SEC_CUR=20; captureGuideView(); dismissWelcome(); guideOn=true; document.body.classList.add("guide");
-    $("guide").classList.remove("hidden"); guideShow(0); if(auto) setAuto(true); }
-  function startGuide(){ GUIDE=GUIDE_FEAT; gName="機能紹介ツアー"; GUIDE_SEC_CUR=GUIDE_SEC; captureGuideView(); dismissWelcome(); guideOn=true; document.body.classList.add("guide"); $("guide").classList.remove("hidden"); guideShow(0); }
+  function startSpect(list,name,auto){ if(guideOn) guideClear(); GUIDE=list; gName=name; GUIDE_SEC_CUR=20; captureGuideView(); dismissWelcome(); guideOn=true; document.body.classList.add("guide");
+    $("guide").classList.remove("hidden"); guideShow(0); setAuto(!!auto); }
+  function startGuide(){ if(guideOn) guideClear(); GUIDE=GUIDE_FEAT; gName="機能紹介ツアー"; GUIDE_SEC_CUR=GUIDE_SEC; captureGuideView(); dismissWelcome(); guideOn=true; document.body.classList.add("guide"); $("guide").classList.remove("hidden"); guideShow(0); setAuto(false); }
   function endGuide(){ if(!guideOn) return; setAuto(false); guideClear(); guideViewBase=null; guideOn=false; document.body.classList.remove("guide"); $("guide").classList.add("hidden");
     goEarthHome(); panelHidden=true; applyPanel(false); $("welcome").classList.remove("closed"); document.body.classList.add("intro"); canvas.dataset.guide=""; }
   $("gNext").onclick=()=>{ if(gIdx>=GUIDE.length-1){ if(gAuto) guideShow(0); else endGuide(); } else guideShow(gIdx+1); };
@@ -2911,7 +2920,6 @@
     gFly=Object.assign({pi:pi,bi:bi,t0:wall,dur:18,b:2.4,L:7},o||{}); }
   /* 火球（明るい流星）を、いま見ている方向に流す */
   let gFb=null, gFbT=0;
-  canvas.addEventListener("pointerdown",()=>{ gCam=null; gPan=0; });   // 操作したら演出のカメラ制御をやめる
   function guideTick(dt){ if(!guideOn) return;
     if(gConst){ const g=gConst;g.t=Math.min(1,g.t+dt/38);
       const ease=x=>{const u=Math.max(0,Math.min(1,x));return u*u*(3-2*u);};
@@ -2978,7 +2986,7 @@
   $("welcomeSpace").onclick=()=>startSpect(SPECT_SPACE,"宇宙の絶景",false); $("bSpectSpace").onclick=()=>startSpect(SPECT_SPACE,"宇宙の絶景",false);
   $("bSpectAuto").onclick=()=>startSpect(SPECT_ALL,"絶景（自動）",true);
   $("welcomeGuide").onclick=startGuide; $("bGuide").onclick=startGuide;
-  addEventListener("keydown",e=>{ if(!guideOn||(e.target&&e.target.tagName==="INPUT")) return;
+  addEventListener("keydown",e=>{ if(!guideOn||(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))) return;
     if(e.key===" "){ e.preventDefault(); setAuto(!gAuto); } else if(e.key==="ArrowRight") $("gNext").click(); else if(e.key==="ArrowLeft"&&gIdx>0) guideShow(gIdx-1);
     else if(e.key==="Escape"&&!tourActive&&!lt.on&&!pt.on) endGuide(); });
   /* 実際の太陽・月の位置をモデル座標（太陽の方向がモデルの地球から見た太陽と一致するよう回転）で求める */
