@@ -2113,7 +2113,7 @@
     b.textContent=trackOn?"追尾中："+TRACK_JP[trackTarget]:"追尾（"+TRACK_JP[trackTarget]+"）"; }
   $("bOrbitView").onclick=()=>{ surfaceMode=false; surfOverride=null; updateViewUI(); };
   $("bSurface").onclick=()=>{ surfOverride=null; trackOn=false; updateTrackUI(); syncObserverInputs(); surfFovT=FOV_SURF_DEG; if(followIdx<0){ followIdx=2; followProbe=-1; setFollowUI(); }
-    surfaceMode=true; surfYawT=0.6; surfPitchT=0.30; pan[0]=pan[1]=pan[2]=0; updateViewUI(); };
+    surfaceMode=true; surfYaw=surfYawT=Math.PI; surfPitch=surfPitchT=0.30; pan[0]=pan[1]=pan[2]=0; updateViewUI(); };
   function fmtLat(v){ return (v>=0?"北緯":"南緯")+Math.abs(v).toFixed(1)+"°"; }
   function fmtLon(v){ return (v>=0?"東経":"西経")+Math.abs(v).toFixed(1)+"°"; }
   function syncObserverInputs(){ $("latIn").value=obsLat; $("lonIn").value=obsLon;
@@ -2213,7 +2213,7 @@
     followIdx=2; followProbe=-1; setFollowUI(); pan[0]=pan[1]=pan[2]=0; surfaceMode=true; updateViewUI();
     obsLat=lat; obsLon=lon; surfLat=lat; syncObserverInputs();
     showConst=true; $("bConst").classList.add("on");
-    surfFovT=FOV_SURF_DEG; surfPitchT=0.30; trackOn=false; updateTrackUI(); years=yearsSinceJ2000(Date.now()); nowLock=true; setSpeed(REAL_SPEED);
+    surfFovT=FOV_SURF_DEG; surfYaw=surfYawT=Math.PI; surfPitch=surfPitchT=0.30; trackOn=false; updateTrackUI(); years=yearsSinceJ2000(Date.now()); nowLock=true; setSpeed(REAL_SPEED);
     setDateInput(new Date()); updateDisplayedClock();
     toast("<b>今の空（"+cityName+"）</b>　いまこの瞬間の空を、実際の時刻どおりに表示しています。<br>速度ボタンを押すと時間を進められます（例：「1時間＝5秒」）。",8);
   }
