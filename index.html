@@ -2749,7 +2749,7 @@
     {t:"金環日食（2012年 東京）",when:"2012年5月21日 朝（日本時間）",d:"東京など太平洋側の広い範囲で見られた金環日食。月が太陽より少し小さく見えるため、太陽が<b>光の輪</b>になります。",
       run:()=>{ const lat=35.68, lon=139.77, m=localEclipseMax(lat,lon,Date.UTC(2012,4,20,22,35));
         skyAt({t:m.t-4*60000,lat:lat,lon:lon,sp:REAL_SPEED*60}); surfFovT=3.2; aimTarget="sun"; }},
-    {t:"皆既月食（2022年）",when:"2022年11月8日 20:00ごろ（日本時間）",d:"地球の影に入った月が<b>赤銅色</b>に染まります。この夜は皆既中の月が天王星を隠す「惑星食」も重なり、日本で皆既月食と惑星食が同時に起きるのは442年ぶりでした（天王星は暗いため、この画面では見えません）。",
+    {t:"皆既月食（2022年）",when:"2022年11月8日 20:00ごろ（日本時間）",d:"月が赤銅色に染まり、そばに<b>天王星の小さな点</b>が見えます。この夜は皆既月食と天王星食が重なり、日本では442年ぶりでした。<br>暗い天王星は拡大時に見やすく表示します。時間が進むと月に隠れます（出入りの時刻は近似）。",
       run:()=>{ skyAt({t:"2022-11-08T11:00Z",lat:MATSU_LAT,lon:MATSU_LON,sp:REAL_SPEED*60}); surfFovT=4.0; aimTarget="moon"; }},
     {t:"木星と土星の大接近",when:"2020年12月21日 18:00（日本時間）",d:"約20年ごとに起きる木星と土星の「会合」。2020年は約400年ぶりの近さで、見かけの間隔は満月の直径の約5分の1（0.1°）でした。<br>視野をぐっと狭めて、南西の低い空を見ています。",
       run:()=>skyAt({t:"2020-12-21T09:00Z",lat:MATSU_LAT,lon:MATSU_LON,sp:0,fov:1.6,aim:aimBody(4,0,0)})},
@@ -3000,6 +3000,11 @@
      ・色：赤・緑・青それぞれの光が大気で弱まる割合（光学的厚さ 0.06・0.11・0.22 の目安。空気分子とちりによる散乱）。画面の色は目の感じ方に近づけるため0.38乗でやわらげる（夕日の円盤がまわりの空より明るい黄橙に見えるように）
      ・平たさ：円盤の上端と下端で屈折量が違うため、縦の大きさが縮む（地平線上でおよそ横の8割） */
   let sunApp=null;
+  // 広角では肉眼の明るさ、望遠では暗い惑星も写るよう感度を補正する。
+  function planetSkyGain(mag,fov,day){
+    const exposure=Math.min(64,Math.pow(Math.max(1,FOV_SURF_DEG/Math.max(fov,0.15)),1.35));
+    return Math.min(1.8,1.1*Math.pow(10,-0.4*(mag-0.5))*exposure)*(1-day*(mag<-3.5?0.5:0.93));
+  }
   const refrDeg=(h)=>{ const x=Math.max(h,-2.0); return 1.02/Math.tan((x+10.3/(x+5.11))*DEG)/60; };
   function sunAtmo(dir,up,radDeg,earth){ const dp=v3dot(dir,up), h=Math.asin(Math.max(-1,Math.min(1,dp)))/DEG;
     let ver=v3sub(up,v3scale(dir,dp)); ver=(v3len(ver)<1e-9)?[1,0,0]:v3norm(ver); const hor=v3norm(v3cross(ver,dir));
@@ -3970,6 +3975,35 @@
         if(cor>0.001){ glowSetup(); gl.uniform3f(progGlow.u.uCenter,sc[0],sc[1],sc[2]); gl.uniform1f(progGlow.u.uSize,sunR*4.2);
           gl.uniform3f(progGlow.u.uColA,0.95,0.97,1.0); gl.uniform3f(progGlow.u.uColB,0.45,0.55,0.85);
           gl.uniform1f(progGlow.u.uPow,2.2); gl.uniform1f(progGlow.u.uGain,cor*1.15); gl.drawArrays(gl.TRIANGLES,0,6); }
+        // 惑星：実際の位置関係から方向と明るさ（等級）を求め、光の点として描く
+        { const ob=surfaceHost||BODIES[followIdx];
+          let obR=v3scale(v3norm(ob.pos),ob.rAU);
+          if(followMoon){
+            // 表示用の縮尺や衛星倍率を除き、観測地点を実距離（AU）へ戻す。
+            const offset=v3sub(surfaceTarget.pos,ob.pos);
+            const moonKm=surfaceTarget.jp==="月"&&AST?v3len(AST.M):surfaceTarget.d*ob.radius;
+            obR=v3add(obR,v3scale(v3norm(offset),moonKm/AU_KM));
+            obR=v3add(obR,v3scale(v3sub(eye,surfaceTarget.pos),surfaceTarget.r/(surfaceTarget.R*AU_KM)));
+          }else obR=v3add(obR,v3scale(surfUp,ob.radius/AU_KM));
+          const hostCos=followMoon?Math.cos(Math.asin(Math.min(0.97,ob.R/v3len(v3sub(ob.pos,surfaceTarget.pos))))):1;
+          glowSetup();
+          for(let k=0;k<BODIES.length;k++){ const bk=BODIES[k]; bk.skyVis=false; if(k===(followMoon?followMoon.body:followIdx)||!bk.pos) continue;
+            const pr=v3scale(v3norm(bk.pos),bk.rAU), dv=v3sub(pr,obR), dist=v3len(dv), dir=v3scale(dv,1/dist);
+            // 母惑星の円盤の背後にある惑星を透かして描かない。
+            if(followMoon&&v3dot(dir,surfacePlanetDir)>hostCos) continue;
+            // 月に隠れた点と名称を消す。円盤の縁で光が欠ける部分は、後から描く月で覆う。
+            if(moonW&&v3dot(dir,moonW)>Math.cos(moonAng)) continue;
+            const cosA=Math.max(-1,Math.min(1,v3dot(v3norm(v3scale(pr,-1)),v3scale(dir,-1)))), alpha=Math.acos(cosA)/DEG;
+            const Hm=(PLANET_H[bk.jp]!==undefined)?PLANET_H[bk.jp]:5;
+            const mag=Hm+5*Math.log10(bk.rAU*dist)+(k===0?0.038:k===1?0.013:0.005)*alpha;
+            const gain=planetSkyGain(mag,surfFov,skyDay);
+            const c=[eye[0]+dir[0]*Dk*0.97,eye[1]+dir[1]*Dk*0.97,eye[2]+dir[2]*Dk*0.97]; bk.skyPt=c; bk.mag=mag;
+            if(gain<0.02) continue; bk.skyVis=gain>0.07;
+            const px=2.4+Math.max(0,1.5-mag)*1.0;
+            gl.uniform3f(progGlow.u.uCenter,c[0],c[1],c[2]); gl.uniform1f(progGlow.u.uSize,Dk*0.97*tanH*(px*3/halfH));
+            gl.uniform3f(progGlow.u.uColA,0.75+bk.col[0]*0.25,0.75+bk.col[1]*0.25,0.75+bk.col[2]*0.25);
+            gl.uniform3f(progGlow.u.uColB,bk.col[0]*0.5,bk.col[1]*0.5,bk.col[2]*0.5);
+            gl.uniform1f(progGlow.u.uPow,2.4); gl.uniform1f(progGlow.u.uGain,gain); gl.drawArrays(gl.TRIANGLES,0,6); } }
         // 月（満ち欠け・月食・日食で太陽を隠す）
         if(moonW){ const Dm=Dk*0.98, mc=[eye[0]+moonW[0]*Dm,eye[1]+moonW[1]*Dm,eye[2]+moonW[2]*Dm], mR=Dm*Math.tan(moonAng);
           const dd=v3sub(v3scale(sunW,Dk),v3scale(moonW,Dm));
@@ -3982,33 +4016,6 @@
           gl.uniform2f(progMoonSky.u.uSunOff,v3dot(dd,RR)/mR,v3dot(dd,UU)/mR); gl.uniform1f(progMoonSky.u.uSunRr,sunR/mR);
           if(AST.lun.t>0&&AST.lun.rho<AST.lun.Rp+RM_KM*1.5) setLunarShadow(progMoonSky); else gl.uniform1f(progMoonSky.u.uShOn,0.0);
           gl.drawArrays(gl.TRIANGLES,0,6); }
-        // 惑星：実際の位置関係から方向と明るさ（等級）を求め、光の点として描く
-        { const ob=surfaceHost||BODIES[followIdx];
-          let obR=v3scale(v3norm(ob.pos),ob.rAU);
-          if(followMoon){
-            // 表示用の縮尺や衛星倍率を除き、観測地点を実距離（AU）へ戻す。
-            const offset=v3sub(surfaceTarget.pos,ob.pos);
-            const moonKm=surfaceTarget.jp==="月"&&AST?v3len(AST.M):surfaceTarget.d*ob.radius;
-            obR=v3add(obR,v3scale(v3norm(offset),moonKm/AU_KM));
-            obR=v3add(obR,v3scale(v3sub(eye,surfaceTarget.pos),surfaceTarget.r/(surfaceTarget.R*AU_KM)));
-          }
-          const hostCos=followMoon?Math.cos(Math.asin(Math.min(0.97,ob.R/v3len(v3sub(ob.pos,surfaceTarget.pos))))):1;
-          glowSetup();
-          for(let k=0;k<BODIES.length;k++){ const bk=BODIES[k]; bk.skyVis=false; if(k===(followMoon?followMoon.body:followIdx)||!bk.pos) continue;
-            const pr=v3scale(v3norm(bk.pos),bk.rAU), dv=v3sub(pr,obR), dist=v3len(dv), dir=v3scale(dv,1/dist);
-            // 母惑星の円盤の背後にある惑星を透かして描かない。
-            if(followMoon&&v3dot(dir,surfacePlanetDir)>hostCos) continue;
-            const cosA=Math.max(-1,Math.min(1,v3dot(v3norm(v3scale(pr,-1)),v3scale(dir,-1)))), alpha=Math.acos(cosA)/DEG;
-            const Hm=(PLANET_H[bk.jp]!==undefined)?PLANET_H[bk.jp]:5;
-            const mag=Hm+5*Math.log10(bk.rAU*dist)+(k===0?0.038:k===1?0.013:0.005)*alpha;
-            const gain=Math.min(1.8,1.1*Math.pow(10,-0.4*(mag-0.5)))*(1-skyDay*(mag<-3.5?0.5:0.93));
-            const c=[eye[0]+dir[0]*Dk*0.97,eye[1]+dir[1]*Dk*0.97,eye[2]+dir[2]*Dk*0.97]; bk.skyPt=c; bk.mag=mag;
-            if(gain<0.02) continue; bk.skyVis=gain>0.07;
-            const px=2.4+Math.max(0,1.5-mag)*1.0;
-            gl.uniform3f(progGlow.u.uCenter,c[0],c[1],c[2]); gl.uniform1f(progGlow.u.uSize,Dk*0.97*tanH*(px*3/halfH));
-            gl.uniform3f(progGlow.u.uColA,0.75+bk.col[0]*0.25,0.75+bk.col[1]*0.25,0.75+bk.col[2]*0.25);
-            gl.uniform3f(progGlow.u.uColB,bk.col[0]*0.5,bk.col[1]*0.5,bk.col[2]*0.5);
-            gl.uniform1f(progGlow.u.uPow,2.4); gl.uniform1f(progGlow.u.uGain,gain); gl.drawArrays(gl.TRIANGLES,0,6); } }
         // まぶしさ（隠れた割合に応じて弱まる）
         const glarePx=Math.max(95,sunPx*2.2), worldSize=Dk*tanH*(glarePx/halfH);
         // 大気で暗くなるほど、まぶしさも弱まる（地平線近くの夕日は直接見られるほど暗い）
