@@ -1298,11 +1298,33 @@
       col*=1.0-inSun*step(lum,0.0001);
       gl_FragColor=vec4(col*aa,a*aa); }`);
   const progPlanetSky=program(DISK_VS,`precision highp float; varying vec2 vUv;
-    uniform vec3 uR,uU,uB,uSun,uTint;
+    uniform vec3 uR,uU,uB,uSun,uTint,uPole; uniform float uType;
     void main(){ float r=length(vUv); if(r>1.0) discard; float z=sqrt(max(1.0-r*r,0.0));
       vec3 n=normalize(uR*vUv.x+uU*vUv.y+uB*z); float lam=max(dot(n,uSun),0.0);
-      float limb=0.48+0.52*sqrt(z); vec3 col=uTint*(0.12+0.88*lam)*limb;
+      float lat=dot(n,normalize(uPole)), bands=1.0;
+      if(uType>3.5&&uType<5.5){
+        float phase=lat*(uType<4.5?34.0:29.0)+0.55*sin(lat*8.0);
+        bands=1.0+(uType<4.5?0.18:0.14)*sin(phase)+0.045*sin(lat*79.0+sin(lat*17.0));
+      } else if(uType>5.5&&uType<7.5){
+        bands=0.98+0.055*sin(lat*25.0+0.35*sin(lat*6.0));
+      }
+      float limb=0.48+0.52*sqrt(z); vec3 col=uTint*bands*(0.12+0.88*lam)*limb;
       float a=(1.0-smoothstep(0.94,1.0,r)); gl_FragColor=vec4(col*a,a); }`);
+  const progPlanetRingSky=program(`precision highp float; attribute vec2 aPos; uniform mat4 uProj,uView;
+    uniform vec3 uCenter,uR,uU; uniform vec2 uMajor,uMinor; uniform float uSize,uOut,uTilt;
+    varying vec2 vUv; void main(){ vUv=aPos; float thin=max(uTilt,0.009/uOut);
+      vec2 p=uMajor*aPos.x+uMinor*aPos.y*thin;
+      gl_Position=uProj*uView*vec4(uCenter+(uR*p.x+uU*p.y)*(uSize*uOut),1.0); }`,
+   `precision highp float; varying vec2 vUv; uniform float uInner,uStyle; uniform vec3 uSun,uN;
+    ${RING_FN}
+    void main(){ float r=length(vUv); if(r>1.0||r<uInner) discard;
+      float u=(r-uInner)/(1.0-uInner), a=min(0.92,ringA(u,uStyle)*1.2);
+      float lit=0.34+0.66*abs(dot(normalize(uN),normalize(uSun))); vec3 c;
+      if(uStyle<0.5) c=mix(vec3(0.88,0.79,0.63),vec3(0.72,0.64,0.51),u);
+      else if(uStyle<1.5) c=vec3(0.61,0.74,0.79);
+      else c=vec3(0.57,0.69,0.88);
+      float edge=smoothstep(0.0,0.035,u)*(1.0-smoothstep(0.94,1.0,u));
+      a*=lit*edge; gl_FragColor=vec4(c*a,a); }`);
   /* ---- 天の川（実際の向き：銀河座標から明るさ・暗黒帯を計算）---- */
   const progMW=program(bodyVS,`precision highp float; varying vec3 vNor,vWorld,vLocal;
     uniform vec3 uEye,uGX,uGY,uGZ; uniform float uGain,uLite;
@@ -2141,9 +2163,10 @@
   $("bOrbitView").onclick=()=>{ surfaceMode=false; surfOverride=null; updateViewUI(); };
   $("bSurface").onclick=()=>{ surfOverride=null; trackOn=false; updateTrackUI();
     const lunarSite=!!(followMoon&&BODIES[followMoon.body].moons[followMoon.moon].jp==="月");
-    if(lunarSite){ obsLat=0; obsLon=90; }
+    if(followMoon){ obsLat=0; obsLon=lunarSite?90:180; }
     syncObserverInputs(); surfFovT=FOV_SURF_DEG; if(followIdx<0&&!followMoon){ followIdx=2; followProbe=-1; setFollowUI(); }
-    surfaceMode=true; surfYaw=surfYawT=lunarSite?Math.PI/2:Math.PI; surfPitch=surfPitchT=lunarSite?0.05:0.30; pan[0]=pan[1]=pan[2]=0; updateViewUI(); };
+    surfaceMode=true; aimTarget=followMoon&&!lunarSite?"host":null;
+    surfYaw=surfYawT=lunarSite?Math.PI/2:Math.PI; surfPitch=surfPitchT=lunarSite?0.05:0.30; pan[0]=pan[1]=pan[2]=0; updateViewUI(); };
   function fmtLat(v){ return (v>=0?"北緯":"南緯")+Math.abs(v).toFixed(1)+"°"; }
   function fmtLon(v){ return (v>=0?"東経":"西経")+Math.abs(v).toFixed(1)+"°"; }
   function syncObserverInputs(){ $("latIn").value=obsLat; $("lonIn").value=obsLon;
@@ -3677,7 +3700,25 @@
             gl.uniform3f(progPlanetSky.u.uB,surfacePlanetDir[0],surfacePlanetDir[1],surfacePlanetDir[2]);
             const ps=v3norm(v3scale(surfaceHost.pos,-1)); gl.uniform3f(progPlanetSky.u.uSun,ps[0],ps[1],ps[2]);
             gl.uniform3f(progPlanetSky.u.uTint,surfaceHost.col[0],surfaceHost.col[1],surfaceHost.col[2]);
+            const pole=[surfaceHost.spinMat[4],surfaceHost.spinMat[5],surfaceHost.spinMat[6]];
+            gl.uniform3f(progPlanetSky.u.uPole,pole[0],pole[1],pole[2]); gl.uniform1f(progPlanetSky.u.uType,surfaceHost.tex);
             gl.uniform3f(progPlanetSky.u.uCenter,pc[0],pc[1],pc[2]); gl.uniform1f(progPlanetSky.u.uSize,pr); gl.drawArrays(gl.TRIANGLES,0,6);
+            if(surfaceHost.ring){
+              let major3=v3cross(pole,surfacePlanetDir); if(v3len(major3)<1e-5) major3=RR; major3=v3norm(major3);
+              let minor3=v3cross(surfacePlanetDir,major3); if(v3len(minor3)<1e-5) minor3=UU; minor3=v3norm(minor3);
+              gl.useProgram(progPlanetRingSky); useAttrs(progPlanetRingSky,[["aPos",bufQuad,2]]);
+              gl.uniformMatrix4fv(progPlanetRingSky.u.uProj,false,proj); gl.uniformMatrix4fv(progPlanetRingSky.u.uView,false,view);
+              gl.uniform3f(progPlanetRingSky.u.uCenter,pc[0],pc[1],pc[2]); gl.uniform3f(progPlanetRingSky.u.uR,RR[0],RR[1],RR[2]);
+              gl.uniform3f(progPlanetRingSky.u.uU,UU[0],UU[1],UU[2]);
+              gl.uniform2f(progPlanetRingSky.u.uMajor,v3dot(major3,RR),v3dot(major3,UU));
+              gl.uniform2f(progPlanetRingSky.u.uMinor,v3dot(minor3,RR),v3dot(minor3,UU));
+              gl.uniform1f(progPlanetRingSky.u.uSize,pr); gl.uniform1f(progPlanetRingSky.u.uOut,surfaceHost.ringOut);
+              gl.uniform1f(progPlanetRingSky.u.uTilt,Math.abs(v3dot(pole,surfacePlanetDir)));
+              gl.uniform1f(progPlanetRingSky.u.uInner,surfaceHost.ringIn/surfaceHost.ringOut);
+              gl.uniform1f(progPlanetRingSky.u.uStyle,surfaceHost.ringStyle);
+              gl.uniform3f(progPlanetRingSky.u.uSun,ps[0],ps[1],ps[2]); gl.uniform3f(progPlanetRingSky.u.uN,pole[0],pole[1],pole[2]);
+              gl.drawArrays(gl.TRIANGLES,0,6);
+            }
             gl.blendFunc(gl.SRC_ALPHA,gl.ONE); } }
         const sunPx=Math.tan(sunAng)/tanH*halfH, minPx=2.2, sunR=Dk*Math.tan(sunAng);
         /* v33：太陽の円盤の見え方（地球のみ）
