@@ -1906,6 +1906,7 @@
   const spinIsReal=(day)=>!(tourActive||pt.on)&&(speed<=0||spinSecPerRot(day)>=0.8);
   const spinAngle=(day,real)=>-(years*YEAR_DAYS/day)*Math.PI*2*(real?1.0:0.02);
   let surfaceMode=false,surfLat=MATSU_LAT,surfYaw=0.6,surfPitch=0.30,surfYawT=0.6,surfPitchT=0.30;
+  let satelliteSurfaceScale=null;
   let years=yearsSinceJ2000(Date.now()), tourActive=false;
   const FOV_SURF_DEG=180/2.6;
   let trackOn=false, trackTarget="sun", trackT0=0;
@@ -1937,7 +1938,7 @@
     if(!(e.buttons&7)){ endDrag(); return; }
     if(Math.hypot(e.clientX-downX,e.clientY-downY)>4) dragMoved=true;
     const dx=e.clientX-lx,dy=e.clientY-ly;
-      if(mode===1&&surfaceMode){ if(trackOn){ trackOn=false; updateTrackUI(); } const k=surfFov/FOV_SURF_DEG; surfYawT-=dx*0.004*k; surfPitchT=Math.max(-0.35,Math.min(1.5,surfPitchT+dy*0.003*k)); }
+    if(mode===1&&surfaceMode){ aimTarget=null; if(trackOn){ trackOn=false; updateTrackUI(); } const k=surfFov/FOV_SURF_DEG; surfYawT-=dx*0.004*k; surfPitchT=Math.max(-0.35,Math.min(1.5,surfPitchT+dy*0.003*k)); }
     else if(mode===1){ cam.tth+=dx*0.005; cam.tph=Math.max(0.05,Math.min(Math.PI-0.05,cam.tph-dy*0.004)); }
     else { const s=cam.d*0.0021, st=Math.sin(cam.th),ct=Math.cos(cam.th),sp=Math.sin(cam.ph),cp=Math.cos(cam.ph);
       const right=[ct,0,-st],up=[-cp*st,sp,-cp*ct];
@@ -2165,7 +2166,15 @@
     followProbe=i; followIdx=-1; followMoon=null; followStar=-1; starLookSun=false; surfaceMode=false; updateViewUI(); setFollowUI(); pan[0]=pan[1]=pan[2]=0;
     showProbe=true; $("bProbe").classList.add("on"); focusProbe(i); }; });
   setFollowUI();
-  function updateViewUI(){ document.body.classList.toggle("surface",surfaceMode);
+  function updateViewUI(){
+    if(satelliteSurfaceScale&&!(surfaceMode&&followMoon)){
+      scaleMode=scaleBlend=satelliteSurfaceScale.mode; moonScale=moonScaleCur=satelliteSurfaceScale.moons;
+      satelliteSurfaceScale=null; rebuildScale();
+      document.querySelectorAll("[data-sc]").forEach(x=>x.classList.toggle("on",+x.dataset.sc===scaleMode));
+      document.querySelectorAll("[data-ms]").forEach(x=>x.classList.toggle("on",+x.dataset.ms===moonScale));
+      if(followMoon){ refocus(); cam.d=cam.td; }
+    }
+    document.body.classList.toggle("surface",surfaceMode);
     $("bOrbitView").classList.toggle("on",!surfaceMode); $("bSurface").classList.toggle("on",surfaceMode);
     $("rowPV").querySelector(".lab").textContent=followMoon?"衛星の視点":"惑星の視点";
     $("bOrbitView").textContent=followMoon?"衛星のまわりから見る":"惑星のまわりから見る";
@@ -2181,9 +2190,16 @@
   $("bOrbitView").onclick=()=>{ surfaceMode=false; surfOverride=null; updateViewUI(); };
   $("bSurface").onclick=()=>{ surfOverride=null; trackOn=false; updateTrackUI();
     const lunarSite=!!(followMoon&&BODIES[followMoon.body].moons[followMoon.moon].jp==="月");
-    if(followMoon){ obsLat=0; obsLon=lunarSite?90:180; }
+    if(followMoon){
+      if(!satelliteSurfaceScale) satelliteSurfaceScale={mode:scaleMode,moons:moonScale};
+      scaleMode=scaleBlend=2; moonScale=moonScaleCur=1; rebuildScale();
+      document.querySelectorAll("[data-sc]").forEach(x=>x.classList.toggle("on",x.dataset.sc==="2"));
+      document.querySelectorAll("[data-ms]").forEach(x=>x.classList.toggle("on",x.dataset.ms==="1"));
+      focusMoon(followMoon.body,followMoon.moon); cam.d=cam.td;
+      obsLat=0; obsLon=lunarSite?90:135;
+    }
     syncObserverInputs(); surfFovT=FOV_SURF_DEG; if(followIdx<0&&!followMoon){ followIdx=2; followProbe=-1; setFollowUI(); }
-    surfaceMode=true; aimTarget=followMoon&&!lunarSite?"host":null;
+    surfaceMode=true; aimTarget=followMoon&&!lunarSite?"hostOnce":null;
     surfYaw=surfYawT=lunarSite?Math.PI/2:Math.PI; surfPitch=surfPitchT=lunarSite?0.05:0.30; pan[0]=pan[1]=pan[2]=0; updateViewUI(); };
   function fmtLat(v){ return (v>=0?"北緯":"南緯")+Math.abs(v).toFixed(1)+"°"; }
   function fmtLon(v){ return (v>=0?"東経":"西経")+Math.abs(v).toFixed(1)+"°"; }
@@ -3218,17 +3234,17 @@
       // 「月を見る」「太陽を見る」：目標の方向へ向ける
       if(aimTarget){ let td=null, aimOk=false;
         if(aimTarget==="moon"&&followIdx===2&&AST) td=v3norm(v3sub(AST.M,v3scale(up,RE_KM)));
-        if(aimTarget==="host"&&followMoon&&surfaceHost) td=v3norm(v3sub(surfaceHost.pos,b.pos));
+        if((aimTarget==="host"||aimTarget==="hostOnce")&&followMoon&&surfaceHost) td=v3norm(v3sub(surfaceHost.pos,b.pos));
         if(aimTarget==="sun") td=(followIdx===2&&AST)?v3norm(AST.S):v3norm(v3scale(b.pos,-1));
         if(typeof aimTarget==="object"){ td=aimTarget.dir(); if(td){ const alt=Math.asin(Math.max(-1,Math.min(1,v3dot(td,up))));
             surfPitchT=surfPitch=Math.max(0.03,Math.min(1.45,alt+(aimTarget.dp||0)*DEG)); surfYawT=Math.atan2(v3dot(td,east),v3dot(td,north));
             surfYaw=surfYawT+(aimTarget.dy||0)*DEG; if(!aimTarget.dy) surfYawT=surfYaw;
             if(alt<0) toast("目標はいま地平線の下です。",5); } trackOn=false; updateTrackUI(); aimTarget=null; td=null; }
         if(td){ const alt=Math.asin(Math.max(-1,Math.min(1,v3dot(td,up))));
-          if(alt<-0.6*DEG){ toast(aimTarget==="moon"?"月はいま地平線の下です。日付や緯度を変えてみてください。":aimTarget==="host"?"母惑星はいま地平線の下です。緯度・経度を変えてみてください。":"太陽はいま地平線の下です。",6); surfFovT=FOV_SURF_DEG; }
+          if(alt<-0.6*DEG){ toast(aimTarget==="moon"?"月はいま地平線の下です。日付や緯度を変えてみてください。":(aimTarget==="host"||aimTarget==="hostOnce")?"母惑星はいま地平線の下です。緯度・経度を変えてみてください。":"太陽はいま地平線の下です。",6); surfFovT=FOV_SURF_DEG; }
           else { surfPitchT=surfPitch=Math.min(1.5,alt);
             const hn=v3dot(td,north),he=v3dot(td,east); if(Math.hypot(hn,he)>1e-5) surfYawT=surfYaw=Math.atan2(he,hn);
-            trackTarget=aimTarget; trackOn=true; trackT0=wall; aimOk=true; } }
+            trackTarget=aimTarget==="hostOnce"?"host":aimTarget; trackOn=aimTarget!=="hostOnce"; trackT0=wall; aimOk=true; } }
         if(!aimOk) trackOn=false;
         updateTrackUI(); aimTarget=null; }
       // 自動追尾：毎コマ、太陽や月の方向を計算し直して画面の中央に保つ（地球の自転で空が動いても外れない）
