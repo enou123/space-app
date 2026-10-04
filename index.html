@@ -1045,6 +1045,32 @@
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false); earthMapReady=1; canvas.dataset.earthMap="ready"; };
   earthImage.onerror=()=>{ canvas.dataset.earthMap="fallback"; };
   earthImage.src=EARTH_MAP_PNG;
+  // NASA Blue Marble のカラー画像。読み込み失敗時は従来の地図描画を使う。
+  const earthColor=gl.createTexture(); let earthColorReady=0;
+  gl.bindTexture(gl.TEXTURE_2D,earthColor);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,1,1,0,gl.RGB,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0]));
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  const earthColorImage=new Image();
+  earthColorImage.onload=()=>{
+    // 低いテクスチャ上限の端末にも合わせる（2048未満なら縮小）。
+    const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    let src=earthColorImage;
+    if(max<earthColorImage.width){ src=document.createElement("canvas"); src.width=max; src.height=max/2;
+      src.getContext("2d").drawImage(earthColorImage,0,0,src.width,src.height); }
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,earthColor);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,src);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+    gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+    const aniso=gl.getExtension("EXT_texture_filter_anisotropic")||gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+    if(aniso) gl.texParameterf(gl.TEXTURE_2D,aniso.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(4,gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+    gl.activeTexture(gl.TEXTURE0); earthColorReady=1; canvas.dataset.earthColor="ready";
+  };
+  earthColorImage.onerror=()=>{ canvas.dataset.earthColor="fallback"; };
+  earthColorImage.src="assets/textures/earth-blue-marble-2048.jpg";
   // 通常の球体と衛星の空の円盤で、同じ表面模様を使う。
   const BODY_SURFACE=`
     // クレーター：ノイズの谷を丸いくぼみに見せる
@@ -1091,12 +1117,15 @@
         base=mix(ocean,ground,land);
         float ice=smoothstep(0.80,0.86,abs(lat)+fbm(P*5.0)*0.08);
         base=mix(base,vec3(0.92,0.95,1.0),ice);
+        // 画像の陸地・氷の色をそのまま使い、海底地形は海面に描かない。
+        vec3 imageColor=texture2D(uEarthColor,earthUV).rgb;
+        base=mix(base,mix(ocean*0.65,imageColor,land),uColorReady);
         spec=(1.0-land)*(1.0-ice)*0.42; specPow=72.0;
         // 雲：少しずつ流れる
-        vec3 cq=P*3.3+vec3(uTime*0.020,0.0,uTime*0.012);
+        vec3 cq=P*5.0+vec3(uTime*0.020,0.0,uTime*0.012);
         float cl=smoothstep(0.62,0.82,fbm(cq+fbm(cq*2.0)*0.8));
         cl*=0.85+0.15*smoothstep(0.1,0.4,abs(lat));
-        base=mix(base,vec3(0.96,0.97,1.0),cl*0.60);
+        base=mix(base,vec3(0.96,0.97,1.0),cl*0.52);
         spec*=(1.0-cl);
         // 夜側の都市の灯り
         float night=smoothstep(0.05,-0.18,NL);
@@ -1153,7 +1182,7 @@
   const progBody=program(bodyVS,`precision highp float;
     varying vec3 vNor,vWorld,vLocal;
     uniform vec3 uEye,uCol,uAtm; uniform float uTex,uDim,uAtmK,uSeed,uTime;
-    uniform sampler2D uEarthMap; uniform float uMapReady;
+    uniform sampler2D uEarthMap,uEarthColor; uniform float uColorReady; uniform float uMapReady;
     uniform float uRingOn,uRingIn,uRingOut,uRingStyle; uniform vec3 uRingN,uRingC;
     uniform float uShOn,uShRm,uShRu,uShRp; uniform vec3 uShA,uShRho;
     uniform float uSolOn,uSolRe,uSolKu,uSolKp; uniform vec3 uSolA,uSolM;
@@ -1323,7 +1352,7 @@
     uniform vec3 uR,uU,uB,uSun,uCol,uAtm,uPole,uSpinX,uSpinZ;
     uniform float uType,uSeed,uTime,uAtmK,uAur,uAurLat,uMapReady;
     #define uTex uType
-    uniform sampler2D uEarthMap;
+    uniform sampler2D uEarthMap,uEarthColor; uniform float uColorReady;
     ${NOISE}
     ${JUPITER_CLOUDS}
     ${BODY_SURFACE}
@@ -3617,6 +3646,9 @@
       gl.uniform3f(progBody.u.uEye,0,0,0); gl.uniform3f(progBody.u.uSunRel,sunRel[0],sunRel[1],sunRel[2]); gl.uniform1f(progBody.u.uDim,sysDim); gl.uniform1f(progBody.u.uTime,wall);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,earthMap);
       gl.uniform1i(progBody.u.uEarthMap,0); gl.uniform1f(progBody.u.uMapReady,earthMapReady);
+      gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,earthColor);
+      gl.uniform1i(progBody.u.uEarthColor,1); gl.uniform1f(progBody.u.uColorReady,earthColorReady);
+      gl.activeTexture(gl.TEXTURE0);
       const setSurf=(tex,col,atm,atmK,seed)=>{ gl.uniform1f(progBody.u.uTex,tex); gl.uniform3f(progBody.u.uCol,col[0],col[1],col[2]);
         gl.uniform3f(progBody.u.uAtm,atm[0],atm[1],atm[2]); gl.uniform1f(progBody.u.uAtmK,atmK); gl.uniform1f(progBody.u.uSeed,seed); gl.uniform1f(progBody.u.uRingOn,0.0);
         gl.uniform1f(progBody.u.uShOn,0.0); gl.uniform1f(progBody.u.uSolOn,0.0); gl.uniform1f(progBody.u.uAur,0.0); };
@@ -3755,6 +3787,9 @@
             gl.uniform1f(progPlanetSky.u.uAtmK,surfaceHost.atmK);
             gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,earthMap);
             gl.uniform1i(progPlanetSky.u.uEarthMap,0); gl.uniform1f(progPlanetSky.u.uMapReady,earthMapReady);
+            gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,earthColor);
+            gl.uniform1i(progPlanetSky.u.uEarthColor,1); gl.uniform1f(progPlanetSky.u.uColorReady,earthColorReady);
+            gl.activeTexture(gl.TEXTURE0);
             const pole=[surfaceHost.spinMat[4],surfaceHost.spinMat[5],surfaceHost.spinMat[6]];
             gl.uniform3f(progPlanetSky.u.uPole,pole[0],pole[1],pole[2]); gl.uniform1f(progPlanetSky.u.uType,surfaceHost.tex);
             gl.uniform3f(progPlanetSky.u.uSpinX,surfaceHost.spinMat[0],surfaceHost.spinMat[1],surfaceHost.spinMat[2]);
