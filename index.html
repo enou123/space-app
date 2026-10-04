@@ -1045,17 +1045,8 @@
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false); earthMapReady=1; canvas.dataset.earthMap="ready"; };
   earthImage.onerror=()=>{ canvas.dataset.earthMap="fallback"; };
   earthImage.src=EARTH_MAP_PNG;
-  const progBody=program(bodyVS,`precision highp float;
-    varying vec3 vNor,vWorld,vLocal;
-    uniform vec3 uEye,uCol,uAtm; uniform float uTex,uDim,uAtmK,uSeed,uTime;
-    uniform sampler2D uEarthMap; uniform float uMapReady;
-    uniform float uRingOn,uRingIn,uRingOut,uRingStyle; uniform vec3 uRingN,uRingC;
-    uniform float uShOn,uShRm,uShRu,uShRp; uniform vec3 uShA,uShRho;
-    uniform float uSolOn,uSolRe,uSolKu,uSolKp; uniform vec3 uSolA,uSolM;
-    uniform float uAur,uAurLat; uniform vec3 uSunRel;
-    ${NOISE}
-    ${JUPITER_CLOUDS}
-    ${RING_FN}
+  // 通常の球体と衛星の空の円盤で、同じ表面模様を使う。
+  const BODY_SURFACE=`
     // クレーター：ノイズの谷を丸いくぼみに見せる
     float craters(vec3 p){
       float c=0.0;
@@ -1063,12 +1054,11 @@
       c+=smoothstep(0.66,0.72,noise(p*17.0+3.1))*0.35;
       c+=smoothstep(0.70,0.74,noise(p*38.0+7.7))*0.25;
       return c; }
-    void main(){
-      vec3 N=normalize(vNor), V=normalize(uEye-vWorld), L=normalize(uSunRel-vWorld);
-      vec3 P=normalize(vLocal)+vec3(uSeed*0.37,uSeed*0.11,uSeed*0.23);
-      float lat=normalize(vLocal).y;
-      float lon=atan(vLocal.z,vLocal.x);
-      vec3 base=uCol; float spec=0.0; vec3 emit=vec3(0.0); float specPow=40.0;
+    void bodySurface(vec3 local,vec3 N,vec3 L,out vec3 base,out float spec,out float specPow,out vec3 emit){
+      vec3 P=normalize(local)+vec3(uSeed*0.37,uSeed*0.11,uSeed*0.23);
+      float lat=normalize(local).y;
+      float lon=atan(local.z,local.x);
+      base=uCol; spec=0.0; emit=vec3(0.0); specPow=40.0;
       float NL=dot(N,L);
 
       if(uTex<0.5){                                   // 0 岩石・氷の小天体
@@ -1085,7 +1075,7 @@
         // しきい値はノイズ分布から算出：陸地が表面の約3割になる値（実際の地球は海が約7割）
         float land=smoothstep(0.672,0.692,h);
         float coast=smoothstep(0.645,0.672,h)*(1.0-land);
-        float lonGeo=atan(vLocal.z,vLocal.x);
+        float lonGeo=atan(local.z,local.x);
         vec2 earthUV=vec2(lonGeo/6.2831853+0.5,asin(clamp(lat,-1.0,1.0))/3.14159265+0.5);
         vec2 earthMask=texture2D(uEarthMap,earthUV).rg;
         float realLand=smoothstep(0.20,0.80,earthMask.r);
@@ -1115,7 +1105,7 @@
         // オーロラ：地磁気の極のまわりの輪（夜側で光る）
         // 地磁気の北極（北緯80.7°・西経72.7°）は地球に固定されているので、輪は自転とともに少し揺れて動く（実際と同じ）。
         // 輪の中心は夜側へずれている：真夜中側は地磁気緯度 約67°、昼側は 約77°（オーロラオーバル）
-        if(uAur>0.0){ vec3 ap=normalize(vLocal), pm=normalize(vec3(0.048,0.987,-0.154));
+        if(uAur>0.0){ vec3 ap=normalize(local), pm=normalize(vec3(0.048,0.987,-0.154));
           float ml=asin(clamp(abs(dot(ap,pm)),0.0,1.0)), dn=dot(N,-L);
           float ov=exp(-pow((ml-(uAurLat+0.17*(1.0-dn)*0.5))/0.05,2.0));
           float cur=0.40+0.60*fbm(ap*16.0+vec3(uTime*0.05,0.0,uTime*0.03));
@@ -1129,7 +1119,7 @@
         float cap=smoothstep(0.86,0.92,abs(lat)+fbm(P*6.0)*0.05);
         base=mix(base,vec3(0.95,0.94,0.92),cap);
       } else if(uTex<4.5){                            // 4 木星：縞と大赤斑
-        base=jupiterClouds(normalize(vLocal));
+        base=jupiterClouds(normalize(local));
       } else if(uTex<5.5){                            // 5 土星：落ち着いた縞
         float tur=fbm(vec3(P.x*2.0,lat*5.0,P.z*2.0))*1.2;
         float b=sin(lat*14.0+tur);
@@ -1159,6 +1149,24 @@
       } else {                                        // 10 探査機の金属
         base=uCol; spec=0.8; specPow=30.0;
       }
+    }`;
+  const progBody=program(bodyVS,`precision highp float;
+    varying vec3 vNor,vWorld,vLocal;
+    uniform vec3 uEye,uCol,uAtm; uniform float uTex,uDim,uAtmK,uSeed,uTime;
+    uniform sampler2D uEarthMap; uniform float uMapReady;
+    uniform float uRingOn,uRingIn,uRingOut,uRingStyle; uniform vec3 uRingN,uRingC;
+    uniform float uShOn,uShRm,uShRu,uShRp; uniform vec3 uShA,uShRho;
+    uniform float uSolOn,uSolRe,uSolKu,uSolKp; uniform vec3 uSolA,uSolM;
+    uniform float uAur,uAurLat; uniform vec3 uSunRel;
+    ${NOISE}
+    ${JUPITER_CLOUDS}
+    ${RING_FN}
+    ${BODY_SURFACE}
+    void main(){
+      vec3 N=normalize(vNor), V=normalize(uEye-vWorld), L=normalize(uSunRel-vWorld);
+      vec3 base,emit; float spec,specPow;
+      bodySurface(vLocal,N,L,base,spec,specPow,emit);
+      float NL=dot(N,L);
       // 探査機は太陽の反対側から見ると真っ黒になるため、弱い補助光を当てる
       float fill=(uTex>9.5)?0.22*max(dot(N,V),0.0):0.0;
 
@@ -1312,22 +1320,26 @@
       col*=1.0-inSun*step(lum,0.0001);
       gl_FragColor=vec4(col*aa,a*aa); }`);
   const progPlanetSky=program(DISK_VS,`precision highp float; varying vec2 vUv;
-    uniform vec3 uR,uU,uB,uSun,uTint,uPole,uSpinX,uSpinZ; uniform float uType;
+    uniform vec3 uR,uU,uB,uSun,uCol,uAtm,uPole,uSpinX,uSpinZ;
+    uniform float uType,uSeed,uTime,uAtmK,uAur,uAurLat,uMapReady;
+    #define uTex uType
+    uniform sampler2D uEarthMap;
     ${NOISE}
     ${JUPITER_CLOUDS}
+    ${BODY_SURFACE}
     void main(){ float r=length(vUv); if(r>1.0) discard; float z=sqrt(max(1.0-r*r,0.0));
-      vec3 n=normalize(uR*vUv.x+uU*vUv.y-uB*z); float lam=max(dot(n,uSun),0.0);
-      float lat=dot(n,normalize(uPole)), bands=1.0;
-      if(uType>3.5&&uType<5.5){
-        float phase=lat*(uType<4.5?34.0:29.0)+0.55*sin(lat*8.0);
-        bands=1.0+(uType<4.5?0.18:0.14)*sin(phase)+0.045*sin(lat*79.0+sin(lat*17.0));
-      } else if(uType>5.5&&uType<7.5){
-        bands=0.98+0.055*sin(lat*25.0+0.35*sin(lat*6.0));
-      }
-      vec3 base=uTint*bands;
-      if(uType>3.5&&uType<4.5) base=jupiterClouds(normalize(vec3(dot(n,uSpinX),dot(n,uPole),dot(n,uSpinZ))));
-      float limb=0.70+0.30*sqrt(z); vec3 col=base*(0.12+0.88*lam)*limb;
-      float a=(1.0-smoothstep(0.94,1.0,r)); gl_FragColor=vec4(col*a,a); }`);
+      vec3 N=normalize(uR*vUv.x+uU*vUv.y-uB*z), V=-uB, L=normalize(uSun);
+      vec3 local=normalize(vec3(dot(N,uSpinX),dot(N,uPole),dot(N,uSpinZ)));
+      vec3 base,emit; float spec,specPow;
+      bodySurface(local,N,L,base,spec,specPow,emit);
+      float NL=dot(N,L), wrap=clamp((NL+0.18)/1.18,0.0,1.0);
+      vec3 col=base*(0.035+wrap);
+      vec3 H=normalize(L+V);
+      col+=vec3(1.0,0.96,0.88)*pow(max(dot(N,H),0.0),specPow)*spec*max(NL,0.0)*0.9;
+      float rim=pow(1.0-max(dot(N,V),0.0),3.0);
+      col+=uAtm*rim*uAtmK*(0.15+0.85*smoothstep(-0.25,0.35,NL));
+      col+=emit; col=col/(col+vec3(0.95));
+      float a=1.0-smoothstep(0.99,1.0,r); gl_FragColor=vec4(col*1.18,a); }`);
   const progPlanetRingSky=program(`precision highp float; attribute vec2 aPos; uniform mat4 uProj,uView;
     uniform vec3 uCenter,uR,uU; uniform vec2 uMajor,uMinor; uniform float uSize,uOut,uTilt;
     varying vec2 vUv; void main(){ vUv=aPos; float thin=max(uTilt,0.009/uOut);
@@ -3735,7 +3747,14 @@
             gl.uniform3f(progPlanetSky.u.uR,RR[0],RR[1],RR[2]); gl.uniform3f(progPlanetSky.u.uU,UU[0],UU[1],UU[2]);
             gl.uniform3f(progPlanetSky.u.uB,surfacePlanetDir[0],surfacePlanetDir[1],surfacePlanetDir[2]);
             const ps=v3norm(v3scale(surfaceHost.pos,-1)); gl.uniform3f(progPlanetSky.u.uSun,ps[0],ps[1],ps[2]);
-            gl.uniform3f(progPlanetSky.u.uTint,surfaceHost.col[0],surfaceHost.col[1],surfaceHost.col[2]);
+            gl.uniform3f(progPlanetSky.u.uCol,surfaceHost.col[0],surfaceHost.col[1],surfaceHost.col[2]);
+            gl.uniform1f(progPlanetSky.u.uSeed,surfaceHost.seed);
+            gl.uniform1f(progPlanetSky.u.uTime,wall); gl.uniform1f(progPlanetSky.u.uAur,surfaceHost.jp==="地球"&&showAur?(storm?1.6:1):0);
+            gl.uniform1f(progPlanetSky.u.uAurLat,(storm?50:67)*DEG);
+            gl.uniform3f(progPlanetSky.u.uAtm,surfaceHost.atm[0],surfaceHost.atm[1],surfaceHost.atm[2]);
+            gl.uniform1f(progPlanetSky.u.uAtmK,surfaceHost.atmK);
+            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,earthMap);
+            gl.uniform1i(progPlanetSky.u.uEarthMap,0); gl.uniform1f(progPlanetSky.u.uMapReady,earthMapReady);
             const pole=[surfaceHost.spinMat[4],surfaceHost.spinMat[5],surfaceHost.spinMat[6]];
             gl.uniform3f(progPlanetSky.u.uPole,pole[0],pole[1],pole[2]); gl.uniform1f(progPlanetSky.u.uType,surfaceHost.tex);
             gl.uniform3f(progPlanetSky.u.uSpinX,surfaceHost.spinMat[0],surfaceHost.spinMat[1],surfaceHost.spinMat[2]);
