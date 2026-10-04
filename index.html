@@ -2575,18 +2575,25 @@
       run:()=>startFly(4,8,Date.UTC(2015,6,14,11,50),{b:2.6,L:8})}];
   { const k=SPECT_SPACE.indexOf(pick("土星の雲の上から見る環")); SPECT_SPACE.splice(k,0,FLY[0],FLY[1],FLY[2],FLY[3]);
     SPECT_SPACE.splice(SPECT_SPACE.indexOf(pick("冥王星と、ニュー・ホライズンズ")),1,FLY[4]); }
-  const SC_SOLAR_JOURNEY={t:"太陽系からアンドロメダへ",when:"太陽から約250万光年先へ",sec:88,
-    d:"太陽を出発し、水星から海王星まで一つずつ近くを通り抜けます。太陽系を離れたあとは、天の川銀河を横切り、最後はアンドロメダ銀河の近くから星の大集団を眺めます。<br><b id='gJourneyStatus'>太陽から出発</b>",
+  const SC_SOLAR_JOURNEY={t:"太陽系からアンドロメダへ",when:"太陽から約250万光年先へ",sec:112,
+    d:"太陽から惑星を順に巡り、冥王星・ハレー彗星・ボイジャー1号、近くの恒星や北極星のそばを通ります。斜めに傾いた天の川銀河を眺めてから一気に遠ざかり、最後はアンドロメダ銀河の向こうに天の川銀河を望みます。<br><b id='gJourneyStatus'>太陽から出発</b>",
     run:()=>{ goEarthHome(); years=yearsSinceJ2000(Date.now()); nowLock=false;setSpeed(0);followIdx=-1;followProbe=-1;followStar=-1;setFollowUI();
       ["#bGalaxy","#bHalo","#bStars","#bLocal"].forEach(sel=>{const el=document.querySelector(sel);if(el&&!el.classList.contains("on"))el.click();});
       const bodies=[{jp:"太陽",pos:[0,0,0],r:SUN_R},...BODIES.slice(0,8).map(b=>({jp:b.jp,pos:b.pos,r:b.R}))];
-      gJourney={t:0,bodies,from:[0,0,0],to:[0,0,0],phase:"planets"};gJourneyTagOriginal=galaxyTag.innerHTML;
+      const pluto=BODIES.find(b=>b.jp==="冥王星"),targets=[
+        {jp:"冥王星",pos:()=>pluto&&bodyAt(pluto,years,false),r:()=>pluto?pluto.R:0.02,angle:[0.38,0.28],distance:2.4},
+        {jp:"ハレー彗星",pos:()=>HALLEY.pos,r:()=>0.06,angle:[-0.30,0.42],distance:4.0},
+        {jp:"ボイジャー1号",pos:()=>PROBES[0].pos,r:()=>PROBE_S,angle:[0.42,-0.24],distance:2.2,probe:0},
+        {jp:"プロキシマ・ケンタウリ",pos:()=>NEAR_STARS[0].pos,r:()=>0.08,angle:[-0.34,-0.30],distance:5.0},
+        {jp:"ポラリス",pos:()=>VISIT_STARS[3].pos,r:()=>VISIT_STARS[3].r,angle:[0.26,0.22],distance:2.6,star:3}
+      ];
+      gJourney={t:0,bodies,targets,from:[0,0,0],to:[0,0,0],phase:"planets"};gJourneyTagOriginal=galaxyTag.innerHTML;
       cam.ph=cam.tph=1.02;cam.th=cam.tth=0.72;cam.d=cam.td=Math.max(SUN_R*2.5,0.1);
     }};
   SPECT_SPACE.push(SC_SOLAR_JOURNEY);
   const SPECT_ALL=SPECT_GROUND.concat(SPECT_SPACE);
   function guideClear(){ gHi.forEach(el=>el.classList.remove("guideHi")); gHi=[]; gPan=0; gPanT=0; meteorBoost=1; gCam=null; gLines=null; gEcl=false; gFly=null; gFb=null;
-    gConst=null; gJourney=null;if(gJourneyTagOriginal){galaxyTag.innerHTML=gJourneyTagOriginal;gJourneyTagOriginal=null;}
+    gConst=null;if(gJourney){followStar=-1;starLookSun=false;followProbe=-1;followIdx=-1;}gJourney=null;if(gJourneyTagOriginal){galaxyTag.innerHTML=gJourneyTagOriginal;gJourneyTagOriginal=null;}
     if(gCollT!==null){ gCollT=null; gColl=0; $("lightTimer").style.opacity=0; }
     gOff.forEach(sel=>{ const el=document.querySelector(sel); if(el&&!el.classList.contains("on")) el.click(); }); gOff=[];
     gOn.forEach(sel=>{ const el=document.querySelector(sel); if(el&&el.classList.contains("on")) el.click(); }); gOn=[];
@@ -2604,7 +2611,7 @@
   function setAuto(v){ gAuto=v; gT=0; $("gAuto").classList.toggle("on",gAuto); $("gAuto").textContent=gAuto?"⏸ 自動停止":"▶ 自動で進む";
     $("gTimer").style.display=gAuto?"":"none"; }
   function startGuideAuto(){ startGuide(); setAuto(true); }
-  function captureGuideView(){ guideViewBase=Object.fromEntries(["#bGalaxy","#bLocal","#bHalo","#bStars","#bGlob","#bConst","#bAster","#bGrid","#bMW"].map(sel=>[sel,document.querySelector(sel).classList.contains("on")])); }
+  function captureGuideView(){ guideViewBase=Object.fromEntries(["#bGalaxy","#bLocal","#bHalo","#bStars","#bGlob","#bConst","#bAster","#bGrid","#bMW","#bProbe"].map(sel=>[sel,document.querySelector(sel).classList.contains("on")])); }
   function startSpect(list,name,auto){ GUIDE=list; gName=name; GUIDE_SEC_CUR=20; captureGuideView(); dismissWelcome(); guideOn=true; document.body.classList.add("guide");
     $("guide").classList.remove("hidden"); guideShow(0); if(auto) setAuto(true); }
   function startGuide(){ GUIDE=GUIDE_FEAT; gName="機能紹介ツアー"; GUIDE_SEC_CUR=GUIDE_SEC; captureGuideView(); dismissWelcome(); guideOn=true; document.body.classList.add("guide"); $("guide").classList.remove("hidden"); guideShow(0); }
@@ -2650,22 +2657,37 @@
       cam.th=cam.tth=g.baseTh+2.25*turn;
       cam.ph=cam.tph=g.basePh+0.16*Math.sin(Math.PI*turn);
       const status=$("gConstDistance");if(status) status.textContent=g.ly<0.001?"地球と月を背に出発":g.ly<1?"太陽系を離れています":g.t<0.72?"地球から約 "+Math.round(g.ly)+" 光年　星座の形が変わっていきます":"地球から約 "+Math.round(g.ly)+" 光年　周囲の星空を見渡しています"; }
-    if(gJourney){ const g=gJourney;g.t=Math.min(88,g.t+dt);const ease=x=>{const u=Math.max(0,Math.min(1,x));return u*u*(3-2*u);};
-      const setFocus=p=>{for(let k=0;k<3;k++)pan[k]=p[k];};
+    if(gJourney){ const g=gJourney;g.t=Math.min(112,g.t+dt);const ease=x=>{const u=Math.max(0,Math.min(1,x));return u*u*(3-2*u);};
+      const setFocus=p=>{const base=followProbe>=0&&PROBES[followProbe].pos?PROBES[followProbe].pos:followStar>=0?VISIT_STARS[followStar].pos:followIdx>=0&&BODIES[followIdx].pos?BODIES[followIdx].pos:[0,0,0];for(let k=0;k<3;k++)pan[k]=p[k]-base[k];};
       if(g.t<42){ const q=g.t/4.6667,i=Math.min(8,Math.floor(q)),u=q-i,a=g.bodies[i],b=g.bodies[Math.min(i+1,8)];
         const p0=i===0?[0,0,0]:bodyAt(a.b||BODIES[i-1],years,false),p1=i===8?bodyAt(BODIES[7],years,false):bodyAt(b.b||BODIES[i],years,false);
-        const t=ease(u);setFocus(p0.map((v,k)=>v+(p1[k]-v)*t));
+        const t=ease(u),target=p0.map((v,k)=>v+(p1[k]-v)*t);setFocus(target);
         const r=Math.max(i===0?SUN_R:a.r, b.r),near=i===0?SUN_R:a.r, depart=near*(4.2+9.0*Math.abs(u-0.5)*2);
-        cam.td=Math.max(near*3.8,depart);cam.tth=0.72+0.055*g.t;cam.tph=1.02+0.08*Math.sin(g.t*0.34);
+        cam.td=Math.max(near*3.8,depart);
+        if(i>=7){const radial=v3norm(target),side=v3norm(v3cross([0,1,0],radial)),up=v3norm(v3cross(radial,side)),eyeDir=v3norm(v3add(radial,v3add(v3scale(side,i===7?0.31:-0.34),v3scale(up,i===7?0.24:-0.30))));
+          cam.tth=Math.atan2(eyeDir[0],eyeDir[2]);cam.tph=Math.acos(Math.max(-0.98,Math.min(0.98,eyeDir[1])));}
+        else{cam.tth=0.72+0.055*g.t;cam.tph=1.02+0.08*Math.sin(g.t*0.34);}
         const status=$("gJourneyStatus");if(status)status.textContent=u<0.5?b.jp+"へ接近中":""+b.jp+"を通過";
-      }else if(g.t<60){ const u=ease((g.t-42)/18),start=Math.max(g.bodies[8].r*18,1.5),end=GAL_SUN_U*3.1;
-        setFocus([0,0,0]);cam.td=start*Math.exp(Math.log(end/start)*u);const gc=galCam(0.58);cam.tth=gc.th+0.24*Math.sin(g.t*0.19);cam.tph=gc.ph;
-        const status=$("gJourneyStatus");if(status)status.textContent="太陽系を離れ、天の川銀河を見渡します";
-      }else{ const u=ease((g.t-60)/28),m31=LOCAL_GALAXIES[3].pos;
-        setFocus(m31.map(v=>v*u));cam.td=GAL_SUN_U*110*Math.exp(Math.log(4/110)*u);
-        const gc=galCam(0.78);cam.tth=gc.th+0.18*Math.sin(g.t*0.13);cam.tph=gc.ph+0.12*Math.sin(g.t*0.21);
-        if(g.t>=82&&!g.tagged){const title=galaxyTag.querySelector(".t"),sub=galaxyTag.querySelector(".s");if(title)title.textContent="ANDROMEDA GALAXY";if(sub)sub.textContent="アンドロメダ銀河　／　局所銀河群で最大の渦巻銀河";g.tagged=true;}
-        const status=$("gJourneyStatus");if(status)status.textContent=u<0.96?"アンドロメダ銀河へ向かっています":"アンドロメダ銀河の近くから、星の大集団を見渡します";
+      }else if(g.t<67){const q=(g.t-42)/5,i=Math.min(g.targets.length-1,Math.floor(q)),u=q-i,a=g.targets[i],pa=a.pos(),prev=i?g.targets[i-1].pos():bodyAt(BODIES[7],years,false),next=i<g.targets.length-1?g.targets[i+1].pos():[0,0,0];
+        let target=pa;if(u<0.18){const v=ease(u/0.18);target=prev.map((x,k)=>x+(pa[k]-x)*v);}else if(u>0.82){const v=ease((u-0.82)/0.18);target=pa.map((x,k)=>x+(next[k]-x)*v);}
+        const leaving=u>0.82;followStar=(!leaving&&a.star!==undefined)?a.star:-1;starLookSun=followStar>=0;followProbe=(!leaving&&a.probe!==undefined)?a.probe:-1;followIdx=-1;
+        if(showProbe!==(a.probe!==undefined&&!leaving)){showProbe=a.probe!==undefined&&!leaving;$("bProbe").classList.toggle("on",showProbe);}
+        setFocus(target);
+        const radial=v3norm(u<0.18?pa:target),side=v3norm(v3cross([0,1,0],radial)),up=v3norm(v3cross(radial,side)),eyeDir=v3norm(v3add(radial,v3add(v3scale(side,a.angle[0]),v3scale(up,a.angle[1]))));
+        cam.tth=Math.atan2(eyeDir[0],eyeDir[2]);cam.tph=Math.acos(Math.max(-0.98,Math.min(0.98,eyeDir[1])));cam.td=Math.max(0.06,a.r()*a.distance);
+        const status=$("gJourneyStatus");if(status)status.textContent=u<0.18?a.jp+"へ接近中":u<0.82?a.jp+"のそばを通過中":a.jp+"を通過";
+      }else if(g.t<79){followStar=-1;starLookSun=false;followProbe=-1;setFocus([0,0,0]);const u=ease((g.t-67)/12),gc=galCam(0.92);
+        cam.td=GAL_SUN_U*(1.7+1.6*u);cam.tth=gc.th+0.22*Math.sin(u*Math.PI*2);cam.tph=gc.ph+0.12*Math.sin(u*Math.PI);
+        const status=$("gJourneyStatus");if(status)status.textContent="天の川銀河の円盤を斜めから眺めます";
+      }else if(g.t<95){followStar=-1;starLookSun=false;followProbe=-1;const u=ease((g.t-79)/16),gc=galCam(0.78+0.22*u);
+        setFocus([0,0,0]);cam.td=GAL_SUN_U*3.3*Math.exp(Math.log(55/3.3)*u);cam.tth=gc.th+0.18*Math.sin(g.t*0.13);cam.tph=gc.ph;
+        const status=$("gJourneyStatus");if(status)status.textContent="天の川銀河を見ながら、銀河間空間へ離れていきます";
+      }else{followStar=-1;starLookSun=false;followProbe=-1;const u=ease((g.t-95)/17),m31=LOCAL_GALAXIES[3].pos,radial=v3norm(m31),side=v3norm(v3cross([0,1,0],radial));
+        const observer=m31.map((v,k)=>v+radial[k]*GAL_SUN_U*12+side[k]*GAL_SUN_U*3),target=m31;
+        const p=target.map(v=>v*u);setFocus(p);const eyeOffset=observer.map((v,k)=>v-p[k]),distance=v3len(eyeOffset),eyeDir=v3norm(eyeOffset);
+        cam.td=distance;cam.tth=Math.atan2(eyeDir[0],eyeDir[2]);cam.tph=Math.acos(Math.max(-0.98,Math.min(0.98,eyeDir[1])));
+        if(g.t>=104&&!g.tagged){const title=galaxyTag.querySelector(".t"),sub=galaxyTag.querySelector(".s");if(title)title.textContent="ANDROMEDA GALAXY";if(sub)sub.textContent="アンドロメダ銀河　／　天の川銀河の向こうに見える渦巻銀河";g.tagged=true;}
+        const status=$("gJourneyStatus");if(status)status.textContent=u<0.92?"アンドロメダ銀河の向こう側へ回り込みます":"アンドロメダ銀河越しに、天の川銀河を望みます";
       } }
     if(gFb&&fxSurf){ gFbT-=dt; if(gFbT<=0){ spawnFireball(gFb); gFbT=11; } }
     // カメラを指定の方向から見る（例：太陽の側から地球を見る、探査機の後ろから太陽を見る）
