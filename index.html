@@ -36,6 +36,11 @@
     line-height:1.45; letter-spacing:.09em; color:#f3f7ff; text-shadow:0 0 25px rgba(130,180,255,.32); }
   #welcome p{ margin:0 0 19px; color:#b7c9e2; font-size:12px; line-height:1.9; }
   #welcome .actions{ display:flex; flex-wrap:wrap; gap:9px; }
+  #welcome .actions .manualLink{ display:inline-block; font-family:inherit; cursor:pointer; color:#dceaff; font-size:12px;
+    border:1px solid rgba(171,205,247,.4); background:rgba(120,168,225,.12);
+    border-radius:999px; padding:9px 14px; text-decoration:none; transition:background .2s,transform .2s; }
+  #welcome .actions .manualLink:hover{ background:rgba(130,183,246,.28); transform:translateY(-2px); }
+  .panelHead .manualLink{ margin-left:auto; color:#b7d3f8; font-size:11px; text-decoration:underline; white-space:nowrap; }
   #welcome button{ font-family:inherit; cursor:pointer; color:#dceaff; font-size:12px;
     border:1px solid rgba(171,205,247,.4); background:rgba(120,168,225,.12);
     border-radius:999px; padding:9px 14px; transition:background .2s,transform .2s; }
@@ -324,7 +329,7 @@
   <h2>地球から、<br>銀河の向こうへ。</h2>
   <p>いま目の前にある地球から、惑星、恒星、銀河へ。実際の天体データをもとに、宇宙の広さを旅します。</p>
   <div class="actions"><button id="welcomeTour" class="primary">宇宙の旅を始める ↗</button>
-    <button id="welcomeSpect">地上の絶景 ★</button><button id="welcomeSpace">宇宙の絶景 ★</button><button id="welcomeGuide">機能紹介ツアー</button><button id="welcomeGuideAuto" title="地上と宇宙の絶景を、自動でくり返し見せます">自動で見る（展示用）</button><button id="welcomeSky">今の空を見る</button><button id="welcomeExplore">自由に探す</button></div>
+    <button id="welcomeSpect">地上の絶景 ★</button><button id="welcomeSpace">宇宙の絶景 ★</button><button id="welcomeGuide">機能紹介ツアー</button><button id="welcomeGuideAuto" title="地上と宇宙の絶景を、自動でくり返し見せます">自動で見る（展示用）</button><button id="welcomeSky">今の空を見る</button><button id="welcomeExplore">自由に探す</button><a class="manualLink" href="docs/操作マニュアル_現行版_2026-10-03.html" target="_blank" rel="noopener">操作マニュアル ↗</a></div>
   <div class="foot">ドラッグで回転　・　ホイールで拡大縮小<br>いつでも右上の「操作」から全機能を使えます</div>
 </div>
 <div id="clock">
@@ -352,7 +357,7 @@
 <div id="info"><button class="close" id="infoClose">×</button>
   <div class="cat" id="infoCat"></div><h3 id="infoName"></h3><div class="en" id="infoEn"></div>
   <div class="desc" id="infoDesc"></div><table id="infoTable"></table></div>
-<div id="panel"><div class="panelHead"><span>CONTROL</span><small>全機能をここから操作できます</small></div>
+<div id="panel"><div class="panelHead"><span>CONTROL</span><small>全機能をここから操作できます</small><a class="manualLink" href="docs/操作マニュアル_現行版_2026-10-03.html" target="_blank" rel="noopener">マニュアル ↗</a></div>
   <div class="row"><span class="lab">ツアー</span><div class="btns"><button id="bTour" class="tour">ズームアウト・ツアー</button><button id="bSpect" class="tour">地上の絶景</button><button id="bSpectSpace" class="tour">宇宙の絶景</button><button id="bSpectAuto" class="tour">絶景（自動・全場面）</button><button id="bGuide" class="tour">機能紹介ツアー</button><button id="bGuideAuto" class="tour">機能紹介（自動・くり返し）</button></div></div>
   <div class="row" id="rowDate"><span class="lab">指定日時</span><div class="btns"><input id="dateIn" type="datetime-local" step="60"><button id="bGo">この日時へ</button><button id="bNow" class="accent">現在の配置</button></div></div>
   <div class="row" id="rowStep"><span class="lab">少しずつ動かす</span><div class="btns"><button class="step" data-dt="-1">◀ 1日</button><button class="step" data-dt="-0.0416666667">◀ 1時間</button><button class="step" data-dt="-0.0069444444">◀ 10分</button><button class="step" data-dt="0.0069444444">10分 ▶</button><button class="step" data-dt="0.0416666667">1時間 ▶</button><button class="step" data-dt="1">1日 ▶</button>
@@ -2466,7 +2471,7 @@
     const t=goldenMin(ms=>-obs(ms),t0-3*3600e3,t0+3*3600e3); return {t:t,o:obs(t)}; }
   const SPECT_OLD=[
     {t:"ヘール・ボップ彗星",when:"1997年4月1日 19:40（日本時間）",d:"20世紀でもっとも多くの人が見た大彗星。近日点を通過したこの日の夕方、松山の<b>北西の空</b>に、ちりの尾（白）とイオンの尾（青）の2本の尾が見えていました。<br>星座線を入れています。視線がゆっくり彗星へ向かいます。",
-      run:()=>skyAt({t:"1997-04-01T10:40Z",lat:MATSU_LAT,lon:MATSU_LON,sp:0,aim:aimComet("ヘール・ボップ彗星",-6,-55),pan:4.6,panSec:12,on:["#bConst"]})},
+      run:()=>skyAt({t:"1997-04-01T10:40Z",lat:MATSU_LAT,lon:MATSU_LON,sp:0,aim:aimComet("ヘール・ボップ彗星",-6,-55),on:["#bConst"]})},
     {t:"百武彗星",when:"1996年3月25日 03:00（日本時間）",d:"地球まで約1500万kmに近づいた彗星。北斗七星の近くから、空を横切るほど長い尾をのばしました。鹿児島のアマチュア天文家、百武裕司さんが発見しました。",
       run:()=>skyAt({t:"1996-03-24T18:00Z",lat:MATSU_LAT,lon:MATSU_LON,sp:0,fov:95,aim:aimComet("百武彗星",-25,0),on:["#bConst"]})},
     {t:"ハレー彗星（1986年）",when:"1986年4月11日 04:30（オーストラリア中部の時刻）",d:"約76年ごとに戻ってくる、いちばん有名な彗星。1986年の回帰は、地球との位置関係から南半球のほうが見やすく、地球に近づいた4月上旬、オーストラリアの明け方の空に尾をのばしました。<br>肉眼では、尾の短いぼんやりとした姿でした。次の回帰は<b>2061年</b>です。",
