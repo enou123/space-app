@@ -382,7 +382,7 @@
     <div class="row"><span class="lab">経度</span><div class="btns"><input id="lonIn" type="range" min="-180" max="180" step="0.1" value="132.8" style="width:150px;"><span id="lonVal" class="val">東経132.8°</span></div></div></div>
   <div class="row" id="surfRow2" style="display:none;"><span class="lab">地表から</span><div class="btns"><button id="bLookMoon">月を見る</button><button id="bLookSun">太陽を見る</button><button id="bFovReset">視野を戻す</button><button id="bTrack" title="太陽や月を画面の中央に保ちます（ドラッグで解除）">追尾</button><button id="bStorm">磁気嵐（オーロラ拡大）</button></div></div>
   <div class="row" id="rowFollow"><span class="lab">惑星を追尾</span><div class="btns" id="followRow"></div></div>
-  <div class="row" id="rowMoonFollow"><span class="lab">衛星を追尾</span><div class="btns"><select id="moonTravelSelect" aria-label="追尾する衛星を選ぶ"><option value="" disabled selected>衛星を選ぶ</option></select></div></div>
+  <div class="row" id="rowMoonFollow"><span class="lab">衛星を追尾</span><div class="btns"><select id="moonTravelSelect" aria-label="追尾する衛星を選ぶ"><option value="" disabled selected>衛星を選ぶ</option></select><span class="hint" id="moonRotationNote" hidden>ヒペリオンはカオス自転。この表示は自転約13日の近似です。土星の動きは表面視点で［追尾］をオフにして観察できます。</span></div></div>
   <div class="row" id="rowStars"><span class="lab">恒星へ行く</span><div class="btns"><select id="starTravelSelect" aria-label="訪問する恒星を選ぶ"><option value="" disabled>行き先を選ぶ</option></select></div></div>
   <div class="row"><span class="lab">恒星から</span><div class="btns"><span class="hint">訪問した恒星の向こうに太陽系の方向を表示します。印は位置表示で、数百光年先から肉眼では見えません。</span></div></div>
   <div class="row" id="rowProbe"><span class="lab">探査機に寄る</span><div class="btns" id="probeRow"></div></div>
@@ -617,7 +617,9 @@
       moons:[{jp:"エンケラドゥス",d:3.95,p:1.370,r:252,c:[0.95,0.95,0.94],tex:8},
              {jp:"レア",d:8.74,p:4.518,r:764,c:[0.78,0.76,0.73],tex:8},
              {jp:"タイタン",d:20.27,p:15.945,r:2575,c:[0.88,0.62,0.30],tex:1},
-             {jp:"イアペトゥス",d:59.03,p:79.32,r:735,c:[0.62,0.58,0.53],tex:8}] },
+             {jp:"イアペトゥス",d:59.03,p:79.32,r:735,c:[0.62,0.58,0.53],tex:8},
+             // カオス自転の実際の姿勢は未知。固定軸・代表周期13日の非同期自転で近似する。
+             {jp:"ヒペリオン",d:25.776,p:21.27661,r:135,c:[0.65,0.53,0.42],tex:8,spinDay:13,phase0:0}] },
     { jp:"天王星",en:"Uranus",a:19.1891,period:84.0205,ecc:0.04726,inc:0.770,peri:170.964,L0:313.232,
       radius:25362,tilt:97.77,day:-0.718,col:[0.58,0.81,0.84],tex:6,atm:[0.55,0.90,1.0],atmK:0.6,
       ring:true,ringIn:1.64,ringOut:2.01,ringStyle:1,
@@ -684,7 +686,7 @@
     b.tiltMat=pole?M4.mul(M4.rotY(-pole[0]*DEG),M4.rotZ(-pole[1]*DEG)):M4.rotZ(b.tiltR);
     b.M0=((b.L0-b.peri)%360+360)%360*DEG;
     b.node=NODES[b.jp]||0; b.plane=orbitBasis(b.node,b.inc,b.peri-b.node);   // peri は近日点黄経ϖ（=Ω+ω）
-    if(b.moons) b.moons.forEach((m,j)=>{ m.P=m.p/YEAR_DAYS; m.ph=Math.random()*Math.PI*2;
+    if(b.moons) b.moons.forEach((m,j)=>{ m.P=m.p/YEAR_DAYS; m.ph=m.phase0??Math.random()*Math.PI*2;
       m.inc=(Math.random()-0.5)*0.26; m.plane=M4.rotX(m.inc); m.seed=i*3.1+j*11.7+5.0;
       // 木星の4大衛星（ガリレオ衛星）は実際の位置で回す。軌道は木星の赤道面（傾き0.5°未満）
       if(b.jp==="木星"){ m.gal=j; m.inc=0; m.plane=M4.rotX(0); }
@@ -2191,6 +2193,8 @@
     "1998 KY26":["はやぶさ2拡張ミッションの最終目的地。直径約11 m、自転周期約5分と、小さくて回転の速い小惑星です。到着すれば、探査機が訪れた最小の天体になります。",[["直径","約11 m"],["自転周期","約5.35 分"],["軌道長半径","1.23 AU"],["到着予定","2031年7月"]]],
     "トリフネ":["はやぶさ2が2026年7月5日にフライバイした小惑星。2つの天体がくっついた「雪だるま」のような接触二重小惑星でした。",[["大きさ","約840×340 m"],["軌道長半径","1.03 AU"],["公転周期","1.05 年"]]]
   };
+  INFO.moon["ヒペリオン"]=["土星の衛星。スポンジのようなクレーターをもつ不規則な形の天体で、自転軸や速さが不規則に変わるカオス自転をします。公転は約21.28日、自転は代表値で約13日です。この表示は固定軸・約13日の非同期自転と円軌道による近似で、実際の姿勢や正確な出没時刻は再現しません。表面で母惑星の追尾をオフにして日時を進めると、土星が空を移動し、地平線の下へ沈んで再び昇る様子を観察できます。",
+    [["母惑星","土星"],["平均半径","約135 km"],["土星からの距離","約150.1万 km"],["公転周期","約21.28 日"],["自転","カオス自転（代表値 約13日）"],["表示の近似","固定軸・一定自転・円軌道。位相と観測地点は模式的"]]];
   const infoBox=$("info"); let selectedEl=null;
   function hideInfo(){ infoBox.classList.remove("show"); if(selectedEl){ selectedEl.classList.remove("sel"); selectedEl=null; } }
   $("infoClose").onclick=hideInfo;
@@ -2266,7 +2270,7 @@
 
   BODIES.forEach((b,i)=>{ const btn=document.createElement("button"); btn.textContent=b.jp; btn.dataset.fo=String(i); $("followRow").appendChild(btn); });
   BODIES.forEach((b,bi)=>{ if(!b.moons||!b.moons.length) return; const group=document.createElement("optgroup"); group.label=b.jp;
-    b.moons.forEach((m,mi)=>{ const option=document.createElement("option"); option.value=bi+":"+mi; option.textContent=m.jp; group.appendChild(option); });
+    b.moons.map((m,mi)=>({m,mi})).sort((a,c)=>a.m.d-c.m.d).forEach(({m,mi})=>{ const option=document.createElement("option"); option.value=bi+":"+mi; option.textContent=m.jp; group.appendChild(option); });
     $("moonTravelSelect").appendChild(group); });
   VISIT_STARS.forEach((s,i)=>{ const option=document.createElement("option"); option.value=String(i);
     option.textContent=s.jp+(s.groupType==="cluster"?"（星団）":s.groupType==="multiple"?"（三重星系）":""); $("starTravelSelect").appendChild(option); });
@@ -2315,6 +2319,7 @@
     showProbe=true; $("bProbe").classList.add("on"); focusProbe(i); }; });
   setFollowUI();
   function updateViewUI(){
+    $("moonRotationNote").hidden=!(followMoon&&BODIES[followMoon.body].moons[followMoon.moon].spinDay);
     if(satelliteSurfaceScale&&!(surfaceMode&&followMoon)){
       scaleMode=scaleBlend=satelliteSurfaceScale.mode; moonScale=moonScaleCur=satelliteSurfaceScale.moons;
       satelliteSurfaceScale=null; rebuildScale();
@@ -2349,6 +2354,13 @@
       document.querySelectorAll("[data-ms]").forEach(x=>x.classList.toggle("on",x.dataset.ms==="1"));
       focusMoon(followMoon.body,followMoon.moon); cam.d=cam.td;
       obsLat=0; obsLon=lunarSite?90:135;
+      const m=BODIES[followMoon.body].moons[followMoon.moon],host=BODIES[followMoon.body];
+      if(m.spinDay&&m.spinMat&&m.pos&&host.pos){
+        // 初回だけ土星が見える経度を選ぶ。以後は同じ地点に立ち、空の動きを見せる。
+        const dir=v3norm(v3sub(host.pos,m.pos)),rot=m.spinMat;
+        const meridian=Math.atan2(v3dot(dir,[rot[8],rot[9],rot[10]]),v3dot(dir,[rot[0],rot[1],rot[2]]));
+        obsLon=wrapPI(meridian-Math.PI/4)/DEG;
+      }
     }
     syncObserverInputs(); surfFovT=FOV_SURF_DEG; if(followIdx<0&&!followMoon){ followIdx=2; followProbe=-1; setFollowUI(); }
     surfaceMode=true; aimTarget=followMoon&&!lunarSite?"hostOnce":null;
@@ -2798,7 +2810,7 @@
       run:()=>{ goEarthHome(); years=yearsSinceJ2000(Date.UTC(2025,1,28,9,50)); nowLock=false; setSpeed(0); clickEl('[data-fo="-1"]'); clickEl("#bTop"); gLines={from:2,to:[0,1,3,4,5,6,7]}; }},
     {t:"木星と4つの衛星のダンス",when:"表示中の日時から",d:"ガリレオ衛星は、実際の位置で回っています（1日＝10秒）。<br>内側の3つ、イオ・エウロパ・ガニメデは、公転周期がほぼ<b>1：2：4</b>。イオが4周する間にエウロパが2周、ガニメデが1周する、息の合ったリズムで回り続けます。",
       run:()=>{ goEarthHome(); clickEl('[data-fo="4"]'); setSpeed(0.009856); nowLock=false; cam.tph=0.42; }},
-    {t:"土星と衛星たち",when:"表示中の日時から",d:"土星の主な衛星も、実際の位置で回っています（1日＝10秒）。いちばん大きい<b>タイタン</b>は水星より大きく、厚い大気をもつ衛星。<b>エンケラドゥス</b>は氷の下に海があり、南極から水を噴き出しています。<br>外側のイアペトゥスは、片側が白く片側が黒い不思議な衛星です。",
+    {t:"土星と衛星たち",when:"表示中の日時から",d:"土星の主な衛星を、観測時刻をもとにした近似の位置で表示します（1日＝10秒）。ヒペリオンの位相は模式的です。いちばん大きい<b>タイタン</b>は水星より大きく、厚い大気をもつ衛星。<b>エンケラドゥス</b>は氷の下に海があり、南極から水を噴き出しています。<br>外側のイアペトゥスは、片側が白く片側が黒い不思議な衛星です。",
       run:()=>{ goEarthHome(); clickEl('[data-fo="5"]'); setSpeed(0.009856); nowLock=false; cam.tph=0.62; }},
     pick("土星の雲の上から見る環"),
     pick("冥王星と、ニュー・ホライズンズ"),
@@ -3843,6 +3855,10 @@
             const pole=v3scale(v3norm(i===2&&AST?[AST.orb[4],AST.orb[5],AST.orb[6]]:[tz[4],tz[5],tz[6]]),spinSense),away=v3norm(v3sub(m.pos,b.pos));
             const lx=v3norm(v3sub(away,v3scale(pole,v3dot(away,pole)))),lz=v3norm(v3cross(lx,pole));
             let libra=0;
+            if(m.spinDay){
+              // 母惑星への向きに固定せず、慣性空間で代表自転周期を使う。位相はJ2000の模式値。
+              libra=wrapPI(m.ph+years*YEAR_DAYS/m.spinDay*Math.PI*2-Math.atan2(v3dot(away,[tz[8],tz[9],tz[10]]),v3dot(away,[tz[0],tz[1],tz[2]])));
+            }
             if(m.jp==="月"&&AST){
               if(m.spinPhase===undefined){ const j2000Moon=realVecs(J2000_MS).M; m.spinPhase=Math.atan2(j2000Moon[2],j2000Moon[0]); }
               const meanLongitude=m.spinPhase+(AST.ms-J2000_MS)/(27.321661*86400000)*Math.PI*2;
@@ -3853,7 +3869,7 @@
             faceM=new Float32Array([libX[0],libX[1],libX[2],0,pole[0],pole[1],pole[2],0,libZ[0],libZ[1],libZ[2],0,0,0,0,1]);
             m.spinMat=M4.mul(M4.trans(m.pos[0],m.pos[1],m.pos[2]),faceM); }
           if(surfActive) continue;      // 地表視点では、空の天体として別に描く
-          // 衛星は潮汐固定：常に同じ面を惑星へ向ける
+          // 通常は潮汐固定。ヒペリオンは代表周期での非同期自転を同じ表面視点にも使う。
           { const mR=rel(m.pos); gl.uniformMatrix4fv(progBody.u.uModel,false,M4.mul(M4.mul(M4.trans(mR[0],mR[1],mR[2]),faceM),M4.scale(m.R))); }
           const tAtm=(m.jp==="タイタン")?[1.0,0.66,0.30]:[0,0,0];
           setSurf(m.tex,m.c,tAtm,m.jp==="タイタン"?0.9:0.0,m.seed);
