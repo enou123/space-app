@@ -271,6 +271,7 @@
   }
   /* 機能紹介ツアー */
   #guide{ position:fixed; z-index:46; left:2.2vw; top:3vh; width:min(400px,42vw); padding:18px 20px 16px;
+    max-height:calc(100dvh - 32px); overflow-y:auto;
     border:1px solid rgba(255,214,130,.45); border-radius:15px; color:#e8eef7;
     background:linear-gradient(150deg,rgba(18,26,48,.95),rgba(6,12,26,.92)); box-shadow:0 20px 60px rgba(0,0,0,.5);
     backdrop-filter:blur(12px); transition:opacity .3s,transform .3s; }
@@ -281,19 +282,26 @@
   #guide h3{ margin:0 0 8px; font-weight:400; font-size:19px; letter-spacing:.06em; }
   #guide p{ margin:0 0 14px; font-size:12.5px; line-height:1.9; color:#c8d7ea; }
   #guide p b{ color:#ffe2a8; font-weight:400; }
-  #guide .gNav{ display:flex; gap:8px; justify-content:flex-end; }
+  #guide .gNav{ display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
   #guide button{ font-family:inherit; cursor:pointer; color:#dceaff; font-size:12px; border:1px solid rgba(171,205,247,.4);
     background:rgba(120,168,225,.12); border-radius:999px; padding:7px 14px; }
   #guide button:hover{ background:rgba(130,183,246,.28); }
   #guide button.on{ background:rgba(143,194,255,.30); border-color:#cfe4ff; }
   #guide button.primary{ color:#1d1405; background:#ffd98f; border-color:#ffe6b5; font-weight:700; }
   #guide button:disabled{ opacity:.35; cursor:default; }
+  #gShowControls{ margin-bottom:12px; font-size:12px; color:#b9dbff; }
+  #gShowStatus{ display:block; margin-bottom:8px; line-height:1.6; }
+  #gShowControls details{ margin-top:8px; max-height:24vh; overflow:auto; }
+  #gShowControls summary{ cursor:pointer; color:#c3e9ff; }
+  #gShowControls svg{ display:block; width:100%; max-height:135px; }
+  #welcome select{ max-width:100%; padding:10px; border-radius:12px; background:#102036; color:#dceaff; border:1px solid #5d7596; font:inherit; }
   body.guide #title{ display:none; }
   body.guide #toast{ top:auto; bottom:4vh; left:auto; right:2vw; transform:none; max-width:min(520px,46vw); }
   .guideHi{ position:relative; z-index:2; box-shadow:0 0 0 2px #ffd36a,0 0 16px 3px rgba(255,200,90,.65) !important; border-radius:10px;
     animation:guidePulse 1.3s ease-in-out infinite; }
   @keyframes guidePulse{ 50%{ box-shadow:0 0 0 2px #ffe6a8,0 0 26px 6px rgba(255,200,90,.85); } }
-  @media(max-width:780px){ #guide{ width:92vw; left:4vw; top:auto; bottom:2vh; } }
+  @media(max-width:780px){ #guide{ width:92vw; left:4vw; top:auto; bottom:2vh; }
+    #guide .gNav{flex-wrap:wrap;gap:6px;} #guide .gNav button{white-space:nowrap;font-size:11px;padding:7px 8px;} }
   @keyframes fadeIn{ to{ opacity:1; } }
 </style>
 </head>
@@ -330,6 +338,7 @@
   <p>いま目の前にある地球から、惑星、恒星、銀河へ。実際の天体データをもとに、宇宙の広さを旅します。</p>
   <div class="actions"><button id="welcomeTour" class="primary">宇宙の旅を始める ↗</button>
     <button id="welcomeSpect">地上の絶景 ★</button><button id="welcomeSpace">宇宙の絶景 ★</button><button id="welcomeGuide">機能紹介ツアー</button><button id="welcomeGuideAuto" title="地上と宇宙の絶景を、自動でくり返し見せます">自動で見る（展示用）</button><button id="welcomeSky">今の空を見る</button><button id="welcomeExplore">自由に探す</button><a class="manualLink" href="docs/操作マニュアル_現行版_2026-10-03.html">操作マニュアル ↗</a></div>
+  <select id="welcomeShowSelect" aria-label="天体ショーを選ぶ"><option value="">新しい天体ショーを選ぶ</option></select>
   <div class="foot">ドラッグで回転　・　ホイールで拡大縮小<br>いつでも右上の「操作」から全機能を使えます</div>
 </div>
 <div id="clock">
@@ -349,6 +358,17 @@
 <div id="toast"></div>
 <div id="guide" class="hidden"><div class="gStep" id="gStep"></div><div class="gBar"><i id="gBar"></i></div>
   <h3 id="gTitle"></h3><p id="gText"></p>
+  <div id="gShowControls" hidden><span id="gShowStatus" role="status"></span><button id="gShowPause">⏸ ショーを一時停止</button> <button id="gShowReplay">↻ 最初から</button>
+    <details id="gOceanDiagram" hidden><summary>氷の下の海（内部構造の模式図）</summary>
+      <svg viewBox="0 0 360 150" role="img" aria-label="エンケラドゥスの断面の模式図。氷殻の下に海、その内側に岩石の核。南極の亀裂から噴出します。">
+        <circle cx="100" cy="73" r="62" fill="#d5e8f4"/><circle cx="100" cy="73" r="51" fill="#397b9e"/><circle cx="100" cy="73" r="36" fill="#8b7564"/>
+        <path d="M97 127 L94 139 M103 127 L108 140 M100 132 L100 147" stroke="#94deff" stroke-width="3"/>
+        <g fill="#d8eaff" font-size="12"><text x="195" y="32">氷の殻</text><text x="195" y="64">氷の下に広がる海</text><text x="195" y="97">岩石の核</text><text x="195" y="131">南極の亀裂と噴出</text></g>
+        <g stroke="#8cbad6"><path d="M140 25 L187 27 M145 52 L187 60 M128 83 L187 93 M110 135 L187 129"/></g>
+      </svg>
+      <small>内部は直接見た映像ではありません。厚さや比率は説明用です。楕円軌道で潮汐力が変わり、内部の変形が熱を生みます。</small>
+    </details>
+  </div>
   <div id="gTimer" style="display:none;"><div class="gBar" style="margin:0 0 6px;"><i id="gTimerBar" style="background:linear-gradient(90deg,#8fc2ff,#cfe4ff);"></i></div><div id="gTimerTxt" style="font-size:10.5px;color:#9fb8d8;margin-bottom:10px;"></div></div>
   <div class="gNav"><button id="gAuto">▶ 自動で進む</button><button id="gEnd">終了</button><button id="gPrev">◀ 戻る</button><button id="gNext" class="primary">次へ ▶</button></div></div>
 <button id="panelToggle" title="H キーでも開閉できます" aria-expanded="false" aria-controls="panel">操作を開く ☰</button>
@@ -376,6 +396,7 @@
   <div class="row sep" id="rowScale"><span class="lab">縮尺</span><div class="btns"><button data-sc="0" class="on">可視化</button><button data-sc="1">実距離</button><button data-sc="2">完全実縮尺</button></div></div>
   <div class="row"><span class="lab">衛星スケール</span><div class="btns"><button data-ms="1" class="on">標準</button><button data-ms="2">×2</button><button data-ms="4">×4</button></div></div>
   <div class="row"><span class="lab">太陽系の視点</span><div class="btns"><button data-fo="-1" class="on">太陽系全体</button><button id="bTop">黄道面を真上から</button></div></div>
+  <div class="row" id="celestialShowRow"><span class="lab">天体ショー</span><div class="btns"><select id="celestialShowSelect" aria-label="天体ショーを選ぶ"><option value="">ショーを選ぶ</option></select></div></div>
   <div class="row" id="rowPV"><span class="lab">惑星の視点</span><div class="btns"><button id="bOrbitView" class="on" title="追尾中の惑星のまわりを回って見る">惑星のまわりから見る</button><button id="bSurface" title="追尾中の惑星（初期は地球・松山）の地面に立って空を見る">地表から空を見る</button></div></div>
   <div id="surfRow" style="display:none;">
     <div class="row"><span class="lab">緯度</span><div class="btns"><input id="latIn" type="range" min="-90" max="90" step="0.1" value="33.8" style="width:150px;"><span id="latVal" class="val">北緯33.8°</span></div></div>
@@ -396,6 +417,7 @@
 </div>
 <div id="fallback"><div><h2 style="font-weight:400;">WebGL が利用できません</h2>
   <p style="color:#8fa9cc;">ブラウザのハードウェアアクセラレーションを有効にしてお試しください。</p></div></div>
+<script src="assets/celestial-physics.js?v=4741d5f3970f"></script>
 <script>
 "use strict";
 (function () {
@@ -614,7 +636,7 @@
     { jp:"土星",en:"Saturn",a:9.53667,period:29.4571,ecc:0.05386,inc:2.486,peri:92.432,L0:49.944,
       radius:58232,tilt:26.73,day:0.444,col:[0.87,0.79,0.60],tex:5,atm:[0.95,0.88,0.68],atmK:0.35,
       ring:true,ringIn:1.35,ringOut:2.30,ringStyle:0,
-      moons:[{jp:"エンケラドゥス",d:3.95,p:1.370,r:252,c:[0.95,0.95,0.94],tex:8},
+      moons:[{jp:"エンケラドゥス",d:4.088,p:1.370,r:252,c:[0.95,0.95,0.94],tex:11},
              {jp:"レア",d:8.74,p:4.518,r:764,c:[0.78,0.76,0.73],tex:8},
              {jp:"タイタン",d:20.27,p:15.945,r:2575,c:[0.88,0.62,0.30],tex:1},
              {jp:"イアペトゥス",d:59.03,p:79.32,r:735,c:[0.62,0.58,0.53],tex:8},
@@ -679,6 +701,7 @@
     const t2=Math.max(0,scaleBlend-1.0);
     SUN_R=SUN_SIZE*(1-t2)+(695700/149597870.7*AU_UNIT)*t2;
   }
+  [421700,671034,1070412,1882709].forEach((km,j)=>{BODIES[4].moons[j].d=km/BODIES[4].radius;});
   BODIES.forEach((b,i)=>{
     b.seed=i*7.31+1.7; b.tiltR=b.tilt*DEG; b.rAU=b.a;
     // 自転軸の向き：IAU の北極方向（黄経 λp、黄道北極からの傾き）に合わせる
@@ -1180,8 +1203,19 @@
         base=mix(base,vec3(0.96,0.95,0.86),smoothstep(0.62,0.74,fbm(P*6.0+1.0))*0.6);
         float v=smoothstep(0.78,0.82,noise(P*22.0));
         base=mix(base,vec3(0.18,0.10,0.06),v);
-      } else {                                        // 10 探査機の金属
+      } else if(uTex<10.5){                           // 10 探査機の金属
         base=uCol; spec=0.8; specPow=30.0;
+      } else {                                       // 11 エンケラドゥス：氷と南極の亀裂（模式的な模様）
+        vec3 q=normalize(local);
+        base=mix(vec3(0.72,0.83,0.88),vec3(0.98,0.98,0.94),fbm(q*14.0));
+        base*=1.0-craters(P)*0.12;
+        float z=q.z+0.022*sin(q.x*14.0), crack=0.0;
+        crack=max(crack,1.0-smoothstep(0.003,0.014,abs(z+0.225)));
+        crack=max(crack,1.0-smoothstep(0.003,0.014,abs(z+0.075)));
+        crack=max(crack,1.0-smoothstep(0.003,0.014,abs(z-0.075)));
+        crack=max(crack,1.0-smoothstep(0.003,0.014,abs(z-0.225)));
+        crack*=smoothstep(0.80,0.91,-q.y)*(1.0-smoothstep(0.34,0.49,abs(q.x)));
+        base=mix(base,vec3(0.20,0.43,0.55),crack*0.85); spec=0.12; specPow=65.0;
       }
     }`;
   const progBody=program(bodyVS,`precision highp float;
@@ -1196,18 +1230,20 @@
     ${JUPITER_CLOUDS}
     ${RING_FN}
     ${BODY_SURFACE}
+    ${CelestialPhysics.shadowGLSL}
     void main(){
       vec3 N=normalize(vNor), V=normalize(uEye-vWorld), L=normalize(uSunRel-vWorld);
       vec3 base,emit; float spec,specPow;
       bodySurface(vLocal,N,L,base,spec,specPow,emit);
       float NL=dot(N,L);
       // 探査機は太陽の反対側から見ると真っ黒になるため、弱い補助光を当てる
-      float fill=(uTex>9.5)?0.22*max(dot(N,V),0.0):0.0;
+      float fill=(uTex>9.5&&uTex<10.5)?0.22*max(dot(N,V),0.0):0.0;
 
       float diff=max(NL,0.0);
       float wrap=clamp((NL+0.18)/1.18,0.0,1.0);
       // 環の影：表面から太陽へ向かう光線が環の面を通るとき、その場所の環の濃さだけ暗くする
       float rs=1.0;
+      rs*=jovianLight(N);
       if(uRingOn>0.5){ float dn=dot(L,uRingN);
         if(abs(dn)>1e-5){ float t=dot(uRingC-vWorld,uRingN)/dn;
           if(t>0.0){ vec3 Q=vWorld+L*t; float u=(length(Q-uRingC)-uRingIn)/(uRingOut-uRingIn);
@@ -1226,6 +1262,7 @@
       col+=uAtm*rim*uAtmK*(0.15+0.85*smoothstep(-0.25,0.35,NL));
       col+=emit;
       // 月食：地球の影に入った部分が暗く、本影の中は赤銅色になる
+      if(uJMode>1.5) col*=mix(0.025,1.0,jovianLight(N));
       if(uShOn>0.5){ vec3 off=uShRho+(N-uShA*dot(N,uShA))*uShRm; float d=length(off);
         float umb=1.0-smoothstep(uShRu*0.97,uShRu*1.03,d), pen=1.0-smoothstep(uShRu,uShRp,d);
         col*=mix(1.0,0.45,pen*(1.0-umb));
@@ -1468,15 +1505,63 @@
       vW=w.xyz; gl_Position=uProj*uView*w; }`,
    `precision highp float; varying float vU; varying vec3 vW; uniform float uStyle,uDim,uPR; uniform vec3 uPC,uSunRel;
     ${RING_FN}
-    void main(){ float a=ringA(vU,uStyle); vec3 c;
+    void main(){ float a=uStyle>2.5?0.16*exp(-pow((vU-0.30)*3.6,2.0))*smoothstep(0.0,0.08,vU)*(1.0-smoothstep(0.82,1.0,vU)):ringA(vU,uStyle); vec3 c;
       if(uStyle<0.5) c=mix(vec3(0.90,0.82,0.66),vec3(0.70,0.64,0.54),vU);
       else if(uStyle<1.5) c=vec3(0.58,0.72,0.78);
-      else c=vec3(0.52,0.66,0.88);
+      else c=uStyle>2.5?vec3(0.32,0.60,0.85):vec3(0.52,0.66,0.88);
       // 本体の影：環の各点から太陽へ向かう光線が惑星本体に当たれば影
       vec3 L=normalize(uSunRel-vW), oc=vW-uPC; float b=dot(oc,L), cc=dot(oc,oc)-uPR*uPR, disc=b*b-cc;
       float sh=(b<0.0)?smoothstep(0.0,uPR*uPR*0.05,disc):0.0;
       c*=1.0-sh*0.94;
       a*=uDim; gl_FragColor=vec4(c*a,a); }`);
+  // South-polar jets: deterministic particles along four schematic tiger stripes.
+  const progIceJet=program(`precision highp float; attribute vec4 aJet;
+    uniform mat4 uProj,uView,uModel; uniform float uTime,uDpr,uGain; varying float vAlpha;
+    void main(){
+      float age=fract(aJet.x+uTime*0.085), z=-0.225+0.15*floor(aJet.z*4.0);
+      float x=(aJet.w-0.5)*0.62;z-=0.022*sin(x*14.0);
+      vec3 origin=vec3(x,-sqrt(max(0.01,1.0-x*x-z*z)),z);
+      float h=age*2.0, spread=0.06*h+0.075*h*h;
+      vec3 p=origin+vec3(cos(aJet.y)*spread,-h,sin(aJet.y)*spread);
+      vec4 mv=uView*uModel*vec4(p,1.0);gl_Position=uProj*mv;
+      gl_PointSize=(1.2+2.8*(1.0-age))*uDpr;
+      vAlpha=pow(1.0-age,2.0)*smoothstep(0.0,0.05,age)*0.22*uGain;
+    }`, `precision highp float; varying float vAlpha;
+    void main(){vec2 p=gl_PointCoord-0.5;float r=dot(p,p);if(r>0.25)discard;
+      float a=exp(-r*17.0)*vAlpha;gl_FragColor=vec4(vec3(0.55,0.82,1.0)*a,a);}`);
+  const ICE_JET_N=1600,iceJetData=new Float32Array(ICE_JET_N*4);
+  for(let j=0;j<ICE_JET_N;j++){iceJetData.set([((j*0.61803398875)%1),j*2.39996323,((j*0.41421356237)%1),((j*0.754877666)%1)],j*4);}
+  const bufIceJet=buffer(iceJetData);
+  const progIceMist=program(`precision highp float;attribute vec2 aPos;
+    uniform mat4 uProj,uView;uniform vec3 uOrigin,uAxis,uRight;uniform float uRadius;varying vec2 vUv;
+    void main(){float h=(aPos.y+1.0)*0.5;vUv=vec2(aPos.x,h);
+      vec3 p=uOrigin+uAxis*h*uRadius*2.0+uRight*aPos.x*uRadius*(0.035+0.65*h*h);
+      gl_Position=uProj*uView*vec4(p,1.0);}`,`precision highp float;varying vec2 vUv;uniform float uGain,uTime;
+    void main(){float a=exp(-vUv.x*vUv.x*8.0)*pow(1.0-vUv.y,2.2)*0.24*uGain;
+      a*=0.82+0.18*sin(vUv.y*43.0+vUv.x*13.0-uTime*0.8);
+      gl_FragColor=vec4(vec3(0.55,0.79,1.0)*a,a);}`);
+  function drawIceJets(proj,viewR,eye,dim){
+    const m=BODIES[5].moons[0];if(!m.spinMat||!m.pos)return;
+    const distance=v3len(v3sub(m.pos,eye));if(distance>m.R*2200)return;
+    const q=v3sub(m.pos,eye),rotation=new Float32Array(m.spinMat);rotation[12]=q[0];rotation[13]=q[1];rotation[14]=q[2];
+    const gain=dim*Math.min(1,m.R*25/Math.max(distance,m.R)),axis=v3scale([rotation[4],rotation[5],rotation[6]],-1);
+    let right=v3cross(v3norm(v3scale(q,-1)),axis);if(v3len(right)<1e-5)right=[rotation[0],rotation[1],rotation[2]];right=v3norm(right);
+    gl.blendFunc(gl.ONE,gl.ONE);gl.useProgram(progIceMist);useAttrs(progIceMist,[["aPos",bufQuad,2]]);
+    gl.uniformMatrix4fv(progIceMist.u.uProj,false,proj);gl.uniformMatrix4fv(progIceMist.u.uView,false,viewR);
+    gl.uniform3f(progIceMist.u.uAxis,...axis);gl.uniform3f(progIceMist.u.uRight,...right);gl.uniform1f(progIceMist.u.uRadius,m.R);
+    gl.uniform1f(progIceMist.u.uGain,gain);gl.uniform1f(progIceMist.u.uTime,gShow&&gShow.kind==='enceladus'?gShow.t:wall);
+    for(let j=0;j<4;j++){const z=-0.225+j*0.15,y=-Math.sqrt(1-z*z);
+      gl.uniform3f(progIceMist.u.uOrigin,q[0]+(rotation[4]*y+rotation[8]*z)*m.R,q[1]+(rotation[5]*y+rotation[9]*z)*m.R,q[2]+(rotation[6]*y+rotation[10]*z)*m.R);
+      gl.drawArrays(gl.TRIANGLES,0,6);
+    }
+    gl.useProgram(progIceJet);useAttrs(progIceJet,[["aJet",bufIceJet,4]]);
+    gl.uniformMatrix4fv(progIceJet.u.uProj,false,proj);gl.uniformMatrix4fv(progIceJet.u.uView,false,viewR);
+    gl.uniformMatrix4fv(progIceJet.u.uModel,false,M4.mul(rotation,M4.scale(m.R)));
+    gl.uniform1f(progIceJet.u.uTime,gShow&&gShow.kind==="enceladus"?gShow.t:wall);
+    gl.uniform1f(progIceJet.u.uDpr,dpr);gl.uniform1f(progIceJet.u.uGain,gain);
+    gl.blendFunc(gl.ONE,gl.ONE);gl.drawArrays(gl.POINTS,0,lite?480:ICE_JET_N);
+    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  }
   const progBelt=program(`precision highp float; attribute vec4 aD0; attribute vec4 aD1;
     uniform mat4 uProj,uView; uniform float uYears,uDpr,uBlend; varying float vShade;
     void main(){ float M=aD1.x+uYears/aD0.w*6.2831853; float E=M+aD0.z*sin(M)+0.5*aD0.z*aD0.z*sin(2.0*M);
@@ -2798,6 +2883,123 @@
     {t:"惑星パレード（2025年）",when:"2025年2月28日 18:50（日本時間）",d:"日没後の空に、水星・金星・木星・火星・土星（と、望遠鏡で見える天王星・海王星）が並んだ「惑星パレード」。<br>惑星はみな<b>黄道</b>（黄色の線）に沿って並びます。地平線近くの水星と土星は、実際には夕焼けの中で見つけにくい明るさでした。",
       run:()=>skyAt({t:"2025-02-28T09:50Z",lat:MATSU_LAT,lon:MATSU_LON,sp:0,fov:125,yaw:235,pitch:28,pan:5.5,panSec:12,on:["#bGrid"]})}
   ];
+  // Celestial shows keep physical geometry separate from cinematic camera motion.
+  let gShow=null,gShowBase=null;
+  const SHOW_SECONDS={jupiter:68,saturn:56,enceladus:58};
+  function jovianGeometry(y){
+    const b=BODIES[4],p=bodyAt(b,y,true),earth=v3norm(v3sub(bodyAt(BODIES[2],y,true),p)),light=v3norm(v3scale(p,-1));
+    const tz=b.tiltMat,phi=Math.atan2(v3dot(earth,[tz[8],tz[9],tz[10]]),v3dot(earth,[tz[0],tz[1],tz[2]]));
+    const u=galileanU(J2000_MS+y*YEAR_DAYS*86400000),moons=b.moons.map((m,j)=>{
+      const a=phi+u[j],x=Math.cos(a)*m.d,z=Math.sin(a)*m.d;
+      return {position:[tz[0]*x+tz[8]*z,tz[1]*x+tz[9]*z,tz[2]*x+tz[10]*z],radius:m.r/b.radius};
+    });return {moons,earth,light,sunAngle:Math.atan(695700/(v3len(p)*149597870.7))};
+  }
+  function findIoPass(ms,target){
+    let a=ms,prev=wrapPI(galileanU(a)[0]-target);
+    for(let j=1;j<=700;j++){const b=ms+j*10*60000,next=wrapPI(galileanU(b)[0]-target);
+      if(prev<=0&&next>=0&&next-prev<Math.PI){let lo=a,hi=b;for(let k=0;k<24;k++){const mid=(lo+hi)/2;if(wrapPI(galileanU(mid)[0]-target)<0)lo=mid;else hi=mid;}return (lo+hi)/2;}
+      a=b;prev=next;
+    }throw new Error('Io event search did not converge');
+  }
+  function satOpening(ms){const y=yearsSinceJ2000(ms),b=BODIES[5],earth=v3norm(v3sub(bodyAt(BODIES[2],y,true),bodyAt(b,y,true))),m=b.tiltMat;
+    return Math.asin(Math.max(-1,Math.min(1,v3dot(earth,[m[4],m[5],m[6]]))))/DEG;
+  }
+  function findRingCrossing(){
+    const ref=Date.UTC(2025,2,23),roots=[];let lo=Date.UTC(2024,0,1),v=satOpening(lo);
+    for(let i=1;i<=730;i++){const hi=Date.UTC(2024,0,1)+i*86400000,w=satOpening(hi);
+      if(v*w<=0){let a=lo,b=hi;for(let k=0;k<25;k++){const mid=(a+b)/2;if(satOpening(a)*satOpening(mid)<=0)b=mid;else a=mid;}roots.push((a+b)/2);}lo=hi;v=w;
+    }if(!roots.length)throw new Error('Ring crossing search did not converge');
+    return roots.sort((a,b)=>Math.abs(a-ref)-Math.abs(b-ref))[0];
+  }
+  function showScale(mode,moons){scaleMode=scaleBlend=mode;moonScale=moonScaleCur=moons;rebuildScale();
+    document.querySelectorAll('[data-sc]').forEach(e=>e.classList.toggle('on',+e.dataset.sc===mode));
+    document.querySelectorAll('[data-ms]').forEach(e=>e.classList.toggle('on',+e.dataset.ms===moons));
+  }
+  function startCelestialShow(kind){
+    gShowBase={mode:satelliteSurfaceScale?satelliteSurfaceScale.mode:scaleMode,moons:satelliteSurfaceScale?satelliteSurfaceScale.moons:moonScale,years,speed,nowLock,dateInput:dateIn.value};
+    goEarthHome();showScale(2,1);nowLock=false;setSpeed(0);
+    ['#bOrbit','#bMoonOrbit','#bProbe','#bConst','#bConstArt','#bAster','#bGrid'].forEach(sel=>{const el=document.querySelector(sel);if(el&&el.classList.contains('on')){el.click();gOff.push(sel);}});
+    ['#bStars','#bLabel','#bMoon','#bSpin'].forEach(sel=>{const el=document.querySelector(sel);if(el&&!el.classList.contains('on')){el.click();gOn.push(sel);}});
+    gShow={kind,t:0,paused:false,duration:SHOW_SECONDS[kind]};
+    if(kind==='jupiter'){gShow.transit=findIoPass(Date.UTC(2026,9,5),0);gShow.behind=findIoPass(gShow.transit+6*3600e3,Math.PI);}
+    if(kind==='saturn')gShow.crossing=findRingCrossing();
+    $('gShowControls').hidden=false;$('gOceanDiagram').hidden=kind!=='enceladus';$('gOceanDiagram').open=false;
+    $('gShowPause').textContent='⏸ ショーを一時停止';
+    for(const id of ['celestialShowSelect','welcomeShowSelect'])$(id).value=kind;
+    applyCelestialShow();setFollowUI();updateViewUI();
+  }
+  function clearCelestialShow(){
+    if(!gShow)return;gShow=null;$('gShowControls').hidden=true;$('gOceanDiagram').open=false;
+    for(const id of ['celestialShowSelect','welcomeShowSelect'])$(id).value='';
+    delete canvas.dataset.celestialShow;delete canvas.dataset.showPhase;
+    if(gShowBase){const old=gShowBase;showScale(old.mode,old.moons);years=old.years;nowLock=old.nowLock;setSpeed(old.speed);dateIn.value=old.dateInput;gShowBase=null;}
+  }
+  const showEase=x=>{const u=Math.max(0,Math.min(1,x));return u*u*(3-2*u);};
+  function showPose(target,dir,distance){
+    for(let k=0;k<3;k++){focus[k]=target[k];pan[k]=0;}
+    cam.d=cam.td=distance;dir=v3norm(dir);cam.ph=cam.tph=Math.acos(Math.max(-0.999,Math.min(0.999,dir[1])));cam.th=cam.tth=Math.atan2(dir[0],dir[2]);
+  }
+  function enceladusPosition(y){const b=BODIES[5],m=b.moons[0];if(m.lam0===undefined)satInit(m);
+    const a=m.lam0+(J2000_MS+y*YEAR_DAYS*86400000-m.t0)/86400000/m.Pd*Math.PI*2,tz=b.tiltMat;
+    return v3add(bodyAt(b,y,false),[tz[0]*Math.cos(a)*b.R*m.d+tz[8]*Math.sin(a)*b.R*m.d,tz[1]*Math.cos(a)*b.R*m.d+tz[9]*Math.sin(a)*b.R*m.d,tz[2]*Math.cos(a)*b.R*m.d+tz[10]*Math.sin(a)*b.R*m.d]);
+  }
+  function applyCelestialShow(){
+    const g=gShow;if(!g||g.paused)return;const t=g.t;let phase='',status='';
+    if(g.kind==='jupiter'){
+      const space=t>=24&&t<36;
+      const ms=t<24?g.transit+(t/24*300-150)*60000:space?g.transit:g.behind+((t-36)/32*300-150)*60000;
+      years=yearsSinceJ2000(ms);const b=BODIES[4],p=bodyAt(b,years,false),geom=jovianGeometry(years),pole=[b.tiltMat[4],b.tiltMat[5],b.tiltMat[6]];
+      const sideways=v3norm(v3cross(pole,geom.earth)),s=showEase((t-24)/6);
+      const dir=space?v3norm(v3add(v3scale(geom.earth,Math.cos(s*0.95)),v3add(v3scale(sideways,Math.sin(s*0.95)),v3scale(pole,0.65*s)))):geom.earth;
+      const earthDistance=v3len(v3sub(bodyAt(BODIES[2],years,true),bodyAt(b,years,true)))*AU_UNIT;
+      followIdx=4;followMoon=null;showPose(p,dir,space?b.R*17:earthDistance);
+      g.telescope=space?null:{fov:2*Math.atan(b.R*(innerWidth<600?3.3:2.3)/earthDistance)};
+      const io=CelestialPhysics.moonEvents(geom.moons[0],geom.earth,geom.light,geom.sunAngle);
+      phase=space?'space':t<24?'transit':'eclipse';
+      status=(space?'宇宙側から位置関係を見る':t<24?'地球方向：イオと影の通過':'地球方向：掩蔽と衛星食')+' ｜ '+(io.occulted?'イオは木星の裏側':io.illumination<0.05?'イオは木星の影の中':io.illumination<0.99?'イオは半影の中':io.transit?'イオが木星の手前を通過':'イオが見えています')+(io.shadowVisible?' ／ 黒い影が木星面を移動':'');
+    }else if(g.kind==='saturn'){
+      const cross=g.crossing,yr=YEAR_DAYS*86400000;let ms;
+      if(t<16)ms=cross+(-7+6.7*showEase(t/16))*yr;
+      else if(t<24)ms=cross+(-0.3+0.6*(t-16)/8)*yr;
+      else if(t<34)ms=cross+(0.3+6.7*showEase((t-24)/10))*yr;
+      else if(t<46)ms=cross;
+      else ms=cross+(-60+120*(t-46)/10)*86400000;
+      years=yearsSinceJ2000(ms);const b=BODIES[5],p=bodyAt(b,years,false),earth=v3norm(v3sub(bodyAt(BODIES[2],years,true),bodyAt(b,years,true))),pole=[b.tiltMat[4],b.tiltMat[5],b.tiltMat[6]],above=t>=34&&t<46;
+      const earthDistance=v3len(v3sub(bodyAt(BODIES[2],years,true),bodyAt(b,years,true)))*AU_UNIT;
+      followIdx=5;followMoon=null;showPose(p,above?v3add(v3scale(pole,-0.92),v3scale(earth,0.35)):earth,above?b.R*(innerWidth<600?17:12):earthDistance);
+      g.telescope=above?null:{fov:2*Math.atan(b.R*(innerWidth<600?5.7:4.8)/earthDistance)};
+      const opening=satOpening(ms);phase=above?'above':'earth';
+      status=above?'土星の上空：環はここにあります':'地球方向からの環の開き '+Math.abs(opening).toFixed(2)+'°（'+(opening>=0?'北側':'南側')+'）';
+      if(!above&&Math.abs(opening)<0.25)status+=' ｜ ほぼ真横から見ています';
+    }else{
+      g.telescope=null;
+      years=yearsSinceJ2000(Date.UTC(2005,6,14,19));const b=BODIES[5],m=b.moons[0],sat=bodyAt(b,years,false),moon=enceladusPosition(years),pole=[b.tiltMat[4],b.tiltMat[5],b.tiltMat[6]];
+      const light=v3norm(v3scale(sat,-1)),equator=v3norm(v3sub(light,v3scale(pole,v3dot(light,pole))));
+      const south=v3scale(pole,-1),dir=v3norm(v3add(v3scale(south,0.42),v3scale(equator,0.91)));
+      const closeDistance=m.R*(innerWidth<600?12:8);
+      let target=moon,distance=closeDistance,viewDir=dir;
+      if(t<10){const e=showEase(t/10);target=sat.map((x,k)=>x+(moon[k]-x)*e);distance=Math.exp(Math.log(b.R*12)+(Math.log(closeDistance)-Math.log(b.R*12))*e);phase='approach';status='土星系から、氷の衛星エンケラドゥスへ';}
+      else if(t<26){phase='south';status='南極の亀裂「タイガーストライプ」から噴き上がる氷粒子';}
+      else if(t<37){const e=showEase((t-26)/11),side=v3norm(v3cross(south,equator));
+        const observer=v3add(moon,v3add(v3scale(south,m.R*(1.2+1.4*e)),v3scale(equator,m.R*(3.5-7*e))));
+        viewDir=v3norm(v3add(v3scale(equator,0.92),v3add(v3scale(side,0.32),v3scale(south,0.15))));distance=m.R*2;
+        target=v3sub(observer,v3scale(viewDir,distance));phase='plume';status='噴出の中へ：水蒸気と氷粒子が宇宙へ広がります';}
+      else{const e=showEase((t-37)/15);target=moon.map((x,k)=>x+(sat[k]-x)*e);distance=Math.exp(Math.log(m.R*4)+(Math.log(b.R*(innerWidth<600?50:27))-Math.log(m.R*4))*e);viewDir=v3norm(v3add(v3scale(dir,1-e),v3scale(v3norm(v3add(equator,v3scale(south,0.65))),e)));phase='ering';status='氷粒子は、土星の淡いE環を補給します（明るさを強調）';}
+      followIdx=-1;followMoon={body:5,moon:0};showPose(target,viewDir,distance);
+    }
+    setDateInput(dateFromYears(years));
+    canvas.dataset.celestialShow=g.kind;canvas.dataset.showPhase=phase;
+    $('gShowStatus').textContent=status;
+    if(t>=g.duration){g.paused=true;$('gShowPause').textContent='▶ ショーを再生';$('gShowStatus').textContent+=' ｜ 再生完了';}
+  }
+  const CELESTIAL_SCENES=[
+    {t:'木星衛星の通過・影・食',kind:'jupiter',when:'2026年10月の配置を使った近似再現',sec:72,
+      d:'イオが木星の手前を通過し、黒い影が雲の上を動きます。宇宙側から位置関係を見た後、木星の裏に隠れる「掩蔽」と、影に入って暗くなる「衛星食」を比べます。<br>距離・大きさは実比率。日時は近似計算で、精密な観測予報ではありません。',run:()=>startCelestialShow('jupiter')},
+    {t:'土星の環が消える日',kind:'saturn',when:'2025年前後の環の見え方（近似）',sec:60,
+      d:'地球方向から、年月とともに環が細くなり、反対側へ開く変化を見ます。途中で上空へ移動すると、環が残っていることが分かります。<br>環を太く見せる補助は使いません。地球方向からの拡大視点で、昼夜などの観測条件は省略しています。',run:()=>startCelestialShow('saturn')},
+    {t:'エンケラドゥス南極噴出ツアー',kind:'enceladus',when:'南極の噴出を体験するイメージ',sec:62,
+      d:'氷の衛星へ近づき、南極の亀裂から広がる噴出物の中を通り抜けます。最後は、氷粒子が土星のE環を補給する様子を眺めます。<br>亀裂の形・噴出の動き・粒子の大きさと明るさは模式的な演出です。',run:()=>startCelestialShow('enceladus')}
+  ];
   const SPECT_SPACE=[
     {t:"月の影が地球をよぎる",when:"2024年4月8日 18:17（世界時）",d:"北アメリカの皆既日食を、太陽の側から見ています。月の影が、地球の表面を<b>時速2000km以上</b>で横切っていきます（1分＝1秒で進みます）。<br>濃い影「本影」は直径200km足らず。その下では皆既日食に、まわりの広い「半影」の中では部分日食になります（円は目印です）。",
       run:()=>{ goEarthHome(); years=yearsSinceJ2000(Date.UTC(2024,3,8,18,10)); nowLock=false; setSpeed(REAL_SPEED*60); cam.td=BODIES[2].R*2.5; gEcl=true;
@@ -2882,8 +3084,9 @@
       cam.ph=cam.tph=1.02;cam.th=cam.tth=0.72;cam.d=cam.td=Math.max(SUN_R*2.5,0.1);
     }};
   SPECT_SPACE.push(SC_SOLAR_JOURNEY);
+  SPECT_SPACE.splice(SPECT_SPACE.findIndex(g=>g.t==="木星と4つの衛星のダンス")+1,0,...CELESTIAL_SCENES);
   const SPECT_ALL=SPECT_GROUND.concat(SPECT_SPACE);
-  function guideClear(){ gHi.forEach(el=>el.classList.remove("guideHi")); gHi=[]; gPan=0; gPanT=0; meteorBoost=1; gCam=null; gLines=null; gEcl=false; gFly=null; gFb=null;
+  function guideClear(){ clearCelestialShow(); gHi.forEach(el=>el.classList.remove("guideHi")); gHi=[]; gPan=0; gPanT=0; meteorBoost=1; gCam=null; gLines=null; gEcl=false; gFly=null; gFb=null;
     gConst=null;if(gJourney){followStar=-1;starLookSun=false;followProbe=-1;followIdx=-1;followMoon=null;}gJourney=null;if(gJourneyTagOriginal){galaxyTag.innerHTML=gJourneyTagOriginal;gJourneyTagOriginal=null;}
     if(gCollT!==null){ gCollT=null; gColl=0; $("lightTimer").style.opacity=0; }
     gOff.forEach(sel=>{ const el=document.querySelector(sel); if(el&&!el.classList.contains("on")) el.click(); }); gOff=[];
@@ -2903,11 +3106,11 @@
     $("gTimer").style.display=gAuto?"":"none"; }
   function startGuideAuto(){ startGuide(); setAuto(true); }
   function captureGuideView(){ guideViewBase=Object.fromEntries(["#bGalaxy","#bLocal","#bHalo","#bStars","#bGlob","#bConst","#bAster","#bGrid","#bMW","#bProbe"].map(sel=>[sel,document.querySelector(sel).classList.contains("on")])); }
-  function startSpect(list,name,auto){ if(guideOn) guideClear(); GUIDE=list; gName=name; GUIDE_SEC_CUR=20; captureGuideView(); dismissWelcome(); guideOn=true; document.body.classList.add("guide");
-    $("guide").classList.remove("hidden"); guideShow(0); setAuto(!!auto); }
+  function startSpect(list,name,auto,initial=0){ if(guideOn) guideClear(); GUIDE=list; gName=name; GUIDE_SEC_CUR=20; captureGuideView(); dismissWelcome(); guideOn=true; document.body.classList.add("guide");
+    $("guide").classList.remove("hidden"); guideShow(initial); setAuto(!!auto); }
   function startGuide(){ if(guideOn) guideClear(); GUIDE=GUIDE_FEAT; gName="機能紹介ツアー"; GUIDE_SEC_CUR=GUIDE_SEC; captureGuideView(); dismissWelcome(); guideOn=true; document.body.classList.add("guide"); $("guide").classList.remove("hidden"); guideShow(0); setAuto(false); }
-  function endGuide(){ if(!guideOn) return; setAuto(false); guideClear(); guideViewBase=null; guideOn=false; document.body.classList.remove("guide"); $("guide").classList.add("hidden");
-    goEarthHome(); panelHidden=true; applyPanel(false); $("welcome").classList.remove("closed"); document.body.classList.add("intro"); canvas.dataset.guide=""; }
+  function endGuide(){ if(!guideOn) return; const restore=gShowBase?{mode:gShowBase.mode,moons:gShowBase.moons}:null; setAuto(false); guideClear(); guideViewBase=null; guideOn=false; document.body.classList.remove("guide"); $("guide").classList.add("hidden");
+    goEarthHome(); if(restore){showScale(restore.mode,restore.moons);const e=BODIES[2],p=bodyAt(e,years,false);for(let k=0;k<3;k++)focus[k]=p[k];cam.d=cam.td=e.R*5.3;} panelHidden=true; applyPanel(false); $("welcome").classList.remove("closed"); document.body.classList.add("intro"); canvas.dataset.guide=""; }
   $("gNext").onclick=()=>{ if(gIdx>=GUIDE.length-1){ if(gAuto) guideShow(0); else endGuide(); } else guideShow(gIdx+1); };
   $("gAuto").onclick=()=>setAuto(!gAuto); $("welcomeGuideAuto").onclick=()=>startSpect(SPECT_ALL,"絶景（自動）",true); $("bGuideAuto").onclick=startGuideAuto;
   // 自動で進む：一定時間ごとに次のステップへ。最後まで行くと最初に戻ってくり返す（展示・説明会向け）
@@ -2933,6 +3136,7 @@
   /* 火球（明るい流星）を、いま見ている方向に流す */
   let gFb=null, gFbT=0;
   function guideTick(dt){ if(!guideOn) return;
+    if(gShow&&!gShow.paused)gShow.t=Math.min(gShow.duration,gShow.t+dt);
     if(gConst){ const g=gConst;g.t=Math.min(1,g.t+dt/38);
       const ease=x=>{const u=Math.max(0,Math.min(1,x));return u*u*(3-2*u);};
       let viewD;
@@ -2993,6 +3197,16 @@
     if(!gAuto) return; gT+=dt; const left=Math.max(0,GUIDE_SEC_CUR-gT);
     $("gTimerBar").style.width=(Math.min(1,gT/GUIDE_SEC_CUR)*100)+"%"; $("gTimerTxt").textContent="次まで "+Math.ceil(left)+" 秒"+(gIdx===GUIDE.length-1?"（最初に戻ります）":"");
     if(gT>=GUIDE_SEC_CUR){ if(gIdx>=GUIDE.length-1) guideShow(0); else guideShow(gIdx+1); } }
+  $('gShowPause').onclick=()=>{if(!gShow)return;setAuto(false);if(gShow.t>=gShow.duration){gShow.t=0;}gShow.paused=!gShow.paused;$('gShowPause').textContent=gShow.paused?'▶ ショーを再生':'⏸ ショーを一時停止';};
+  $('gShowReplay').onclick=()=>{if(!gShow)return;setAuto(false);gShow.t=0;gShow.paused=false;$('gShowPause').textContent='⏸ ショーを一時停止';applyCelestialShow();};
+  for(const id of ['celestialShowSelect','welcomeShowSelect']){const el=$(id);for(const g of CELESTIAL_SCENES){const o=document.createElement('option');o.value=g.kind;o.textContent=g.t;el.appendChild(o);}
+    el.onchange=()=>{if(el.value)startSpect(SPECT_SPACE,'宇宙の絶景',false,SPECT_SPACE.findIndex(g=>g.kind===el.value));};}
+  // Changing a destination/time/scale leaves the show before the normal control runs.
+  const leaveShowForControl=e=>{if(!gShow||!e.target.closest('[data-fo],[data-fp],[data-sc],[data-ms],[data-sp],[data-dt],#moonTravelSelect,#starTravelSelect,#bNow,#bGo,#dateIn,#bSurface,#bOrbitView,#bTour,#bTop,#bOort,#bStarView,#bGalaxyView,#bLocalView,#bNowSky,#bNowSkyKumamoto,#bNowSkyHere,#bNowSkyAtlanta,#bSolPrev,#bSolNext,#bLunPrev,#bLunNext,#bLightF,#bLightR,#ptRow button,#bComet'))return;
+    const pickedDate=dateIn.value,keepDate=!!e.target.closest('#dateIn,#bGo');
+    setAuto(false);guideClear();if(keepDate)dateIn.value=pickedDate;guideViewBase=null;guideOn=false;document.body.classList.remove('guide');$('guide').classList.add('hidden');};
+  $('panel').addEventListener('click',leaveShowForControl,true);$('panel').addEventListener('change',leaveShowForControl,true);
+  $('panel').addEventListener('keydown',e=>{if(e.key==='Enter')leaveShowForControl(e);},true);
   $("gPrev").onclick=()=>guideShow(gIdx-1); $("gEnd").onclick=endGuide;
   $("welcomeSpect").onclick=()=>startSpect(SPECT_GROUND,"地上の絶景",false); $("bSpect").onclick=()=>startSpect(SPECT_GROUND,"地上の絶景",false);
   $("welcomeSpace").onclick=()=>startSpect(SPECT_SPACE,"宇宙の絶景",false); $("bSpectSpace").onclick=()=>startSpect(SPECT_SPACE,"宇宙の絶景",false);
@@ -3309,6 +3523,8 @@
     if(Math.abs(scaleBlend-scaleMode)<0.0008) scaleBlend=scaleMode;
     if(scaleBlend!==sbPrev) rebuildScale();
 
+    if(gShow)applyCelestialShow();
+
     // 探査機の位置は追尾に使うため、描画より先に求めておく
     updateProbeWP();
     for(let i=0;i<PROBES.length;i++){ const pr=PROBES[i], st=probeState(pr,years); pr.vis=!!st&&probeOn(i);
@@ -3397,7 +3613,8 @@
       else if(scaleMode===0) scaleNote.textContent="";
       else if(scaleMode===1) scaleNote.textContent="実距離モード：惑星・小惑星帯・カイパーベルト・彗星・探査機の距離が実際の比率（天体の大きさは拡大）。オールトの雲より外側は「可視化」で表示します";
       else scaleNote.textContent="完全実縮尺：距離も大きさも実際の比率。天体が点に見えるのが本来の姿です";
-      if(galaxyFade>0.40){ const lyv=cam.d/GAL_U_PER_KPC*KPC_TO_LY;
+      if(gShow&&gShow.telescope){scaleNote.textContent="地球方向からの望遠鏡視点（拡大）／距離・大きさは実比率";scaleEl.textContent="視野（縦） 約 "+(gShow.telescope.fov/DEG*60).toFixed(2)+" 分角";}
+      else if(galaxyFade>0.40){ const lyv=cam.d/GAL_U_PER_KPC*KPC_TO_LY;
         scaleEl.textContent="視野半径　約 "+(lyv>=1e6?fmtNum(Math.round(lyv/1e4))+" 万光年":fmtNum(Math.round(lyv/100)*100)+" 光年"); }
       else { const au=realAU(cam.d);   // 縮尺モードに合わせて実際のAUへ換算
         scaleEl.textContent=(au>LY_IN_AU*0.5)?"視野半径　約 "+(au/LY_IN_AU).toFixed(1)+" 光年"
@@ -3409,12 +3626,13 @@
     else if(followIdx>=0&&BODIES[followIdx].pos) base=BODIES[followIdx].pos;
     else if(followStar>=0) base=VISIT_STARS[followStar].pos;
     const ez=(followIdx>=0||followMoon||followProbe>=0||followStar>=0)?0.22:0.06;
-    if(!starFlight&&!gConst) for(let k=0;k<3;k++) focus[k]+=((base[k]+pan[k])-focus[k])*(stereoPass?0:ez);
+    if(!starFlight&&!gConst&&!gShow) for(let k=0;k<3;k++) focus[k]+=((base[k]+pan[k])-focus[k])*(stereoPass?0:ez);
 
     const stereo=stereoMode!=="normal";
     const pair=stereoMode==="parallel"||stereoMode==="cross";
     const aspect=(canvas.width/(pair?2:1))/canvas.height; const FOV=Math.PI/4.3;
     let eye,proj,view,viewR,lookAt=focus,surfActive=false,fov=FOV,stereoDir=null,stereoUp=null;
+    if(gShow&&gShow.telescope)fov=gShow.telescope.fov;
     const surfaceTarget=followMoon?BODIES[followMoon.body].moons[followMoon.moon]:followIdx>=0?BODIES[followIdx]:null;
     const surfaceHost=followMoon?BODIES[followMoon.body]:null;
     if(surfaceMode&&!cine&&surfaceTarget&&surfaceTarget.spinMat){
@@ -3473,11 +3691,14 @@
     } else {
       eye=[focus[0]+cam.d*Math.sin(cam.ph)*Math.sin(cam.th),focus[1]+cam.d*Math.cos(cam.ph),focus[2]+cam.d*Math.sin(cam.ph)*Math.cos(cam.th)];
       lookAt=starLookSun&&followStar>=0?v3sub(focus,v3scale(v3norm(VISIT_STARS[followStar].pos),cam.d*1.12)):focus;
-      proj=M4.perspective(fov,aspect,starLookSun?Math.max(0.05,cam.d*0.002):cam.d*(followProbe>=0?0.02:1.2e-4),
+      proj=M4.perspective(fov,aspect,gShow&&gShow.telescope?cam.d*0.5:starLookSun?Math.max(0.05,cam.d*0.002):cam.d*(followProbe>=0?0.02:1.2e-4),
         starLookSun?Math.max(cam.d*40,Math.hypot(...eye)*1.2):Math.max(cam.d*40,4000));
-      view=M4.mul(M4.flip,M4.lookAt(eye,lookAt,[0,1,0]));
-      viewR=M4.mul(M4.flip,M4.lookAt([0,0,0],v3sub(lookAt,eye),[0,1,0]));
+      const showUp=gShow&&gShow.kind==='enceladus'?v3scale([BODIES[5].tiltMat[4],BODIES[5].tiltMat[5],BODIES[5].tiltMat[6]],-1):[0,1,0];
+      view=M4.mul(M4.flip,M4.lookAt(eye,lookAt,showUp));
+      viewR=M4.mul(M4.flip,M4.lookAt([0,0,0],v3sub(lookAt,eye),showUp));
     }
+    // Keep the show clear of the guide card, including the tall iPhone layout.
+    if(gShow){if(innerWidth<=780)proj[9]-=gShow.kind==='enceladus'?0.30:0.50;else proj[8]-=0.28;}
     if(stereo){
       // 平行な左右カメラを投影面で収束させる。寄り目式の台形歪みを避ける。
       const target=surfActive?v3add(eye,v3scale(stereoDir,Math.max(surfaceTarget.R*8,0.02))):lookAt;
@@ -3746,7 +3967,7 @@
         const ca=Math.max(0,1-Math.hypot(c.pos[0],c.pos[1],c.pos[2])/distNow(6.0));
         drawComet(c.pos, ca>0.004?(3.0+ca*ca*26.0)*(scaleMode>0?0.6:1.0):0, 0.55+ca*0.7, Math.max(cam.d*0.006,0.02)); }
 
-      if(scaleBlend>1.02){ const mk=Math.min(1.0,(scaleBlend-1.0)/0.6); glowSetup(); gl.uniform1f(progGlow.u.uPow,2.8);
+      if(scaleBlend>1.02&&!(gShow&&gShow.telescope)){ const mk=Math.min(1.0,(scaleBlend-1.0)/0.6); glowSetup(); gl.uniform1f(progGlow.u.uPow,2.8);
         for(let i=0;i<BODIES.length;i++){ const b=BODIES[i]; if(!b.pos) continue;
           const near=(followIdx===i)&&(cam.d<b.R*40);
           gl.uniform3f(progGlow.u.uCenter,b.pos[0],b.pos[1],b.pos[2]); gl.uniform1f(progGlow.u.uSize,Math.max(b.R*1.5,cam.d*0.0035));
@@ -3808,6 +4029,9 @@
       drawSphere(progSun,lite?SPH_LO:SPH); }
 
       gl.useProgram(progBody); gl.uniformMatrix4fv(progBody.u.uProj,false,proj); gl.uniformMatrix4fv(progBody.u.uView,false,viewR);
+      const jovian=jovianGeometry(years);
+      gl.uniform3f(progBody.u.uJLight,...jovian.light);gl.uniform1f(progBody.u.uJSunAngle,jovian.sunAngle);
+      jovian.moons.forEach((m,j)=>gl.uniform4f(progBody.u['uJMoon'+j],...m.position,m.radius));
       gl.uniform3f(progBody.u.uEye,0,0,0); gl.uniform3f(progBody.u.uSunRel,sunRel[0],sunRel[1],sunRel[2]); gl.uniform1f(progBody.u.uDim,sysDim); gl.uniform1f(progBody.u.uTime,wall);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,earthMap);
       gl.uniform1i(progBody.u.uEarthMap,0); gl.uniform1f(progBody.u.uMapReady,earthMapReady);
@@ -3816,10 +4040,12 @@
       gl.activeTexture(gl.TEXTURE0);
       const setSurf=(tex,col,atm,atmK,seed)=>{ gl.uniform1f(progBody.u.uTex,tex); gl.uniform3f(progBody.u.uCol,col[0],col[1],col[2]);
         gl.uniform3f(progBody.u.uAtm,atm[0],atm[1],atm[2]); gl.uniform1f(progBody.u.uAtmK,atmK); gl.uniform1f(progBody.u.uSeed,seed); gl.uniform1f(progBody.u.uRingOn,0.0);
-        gl.uniform1f(progBody.u.uShOn,0.0); gl.uniform1f(progBody.u.uSolOn,0.0); gl.uniform1f(progBody.u.uAur,0.0); };
+        gl.uniform1f(progBody.u.uShOn,0.0); gl.uniform1f(progBody.u.uSolOn,0.0); gl.uniform1f(progBody.u.uAur,0.0); gl.uniform1f(progBody.u.uJMode,0.0); };
       const setLunarShadow=(p)=>{ const g=AST.lun; gl.uniform1f(p.u.uShOn,1.0); gl.uniform3f(p.u.uShA,g.A[0],g.A[1],g.A[2]);
         gl.uniform3f(p.u.uShRho,g.rhoV[0],g.rhoV[1],g.rhoV[2]); gl.uniform1f(p.u.uShRm,RM_KM); gl.uniform1f(p.u.uShRu,g.Ru); gl.uniform1f(p.u.uShRp,g.Rp); };
       for(let i=0;i<BODIES.length;i++){ const b=BODIES[i];
+        // Telescope scenes are composed at the Earth distance; omit the observer's own globe.
+        if(gShow&&gShow.telescope&&i!==followIdx)continue;
         const M=b.M0+(years/b.period)*Math.PI*2, E=kepler(((M%(Math.PI*2))+Math.PI*2)%(Math.PI*2),b.ecc);
         b.pos=toWorld(b.plane,b.A*(Math.cos(E)-b.ecc),b.B*Math.sin(E)); b.rAU=b.a*(1-b.ecc*Math.cos(E));
         let mat=M4.mul(M4.trans(b.pos[0],b.pos[1],b.pos[2]),b.tiltMat);
@@ -3830,6 +4056,7 @@
         const bR=rel(b.pos); b.spinRel=M4.mul(M4.trans(bR[0],bR[1],bR[2]),spinR);
         gl.uniformMatrix4fv(progBody.u.uModel,false,M4.mul(b.spinRel,M4.scale(b.R)));
         setSurf(b.tex,b.col,b.atm,b.atmK,b.seed);
+        if(i===4)gl.uniform1f(progBody.u.uJMode,1.0);
         if(b.ring){ gl.uniform1f(progBody.u.uRingOn,1.0); gl.uniform3f(progBody.u.uRingN,mat[4],mat[5],mat[6]);
           gl.uniform3f(progBody.u.uRingC,bR[0],bR[1],bR[2]); gl.uniform1f(progBody.u.uRingIn,b.R*b.ringIn);
           gl.uniform1f(progBody.u.uRingOut,b.R*b.ringOut); gl.uniform1f(progBody.u.uRingStyle,b.ringStyle); }
@@ -3873,6 +4100,7 @@
           { const mR=rel(m.pos); gl.uniformMatrix4fv(progBody.u.uModel,false,M4.mul(M4.mul(M4.trans(mR[0],mR[1],mR[2]),faceM),M4.scale(m.R))); }
           const tAtm=(m.jp==="タイタン")?[1.0,0.66,0.30]:[0,0,0];
           setSurf(m.tex,m.c,tAtm,m.jp==="タイタン"?0.9:0.0,m.seed);
+          if(i===4){const q=jovian.moons[j];gl.uniform1f(progBody.u.uJMode,2.0);gl.uniform4f(progBody.u.uJReceiver,...q.position,q.radius);}
           if(i===2&&AST&&AST.lun.t>0&&AST.lun.rho<AST.lun.Rp+RM_KM*1.5) setLunarShadow(progBody);
           drawSphere(progBody,SPH_LO); }
         if(i===2&&!surfActive){
@@ -3915,12 +4143,20 @@
       gl.useProgram(progRing); useAttrs(progRing,[["aPos",bufRing,3]]);
       gl.uniformMatrix4fv(progRing.u.uProj,false,proj); gl.uniformMatrix4fv(progRing.u.uView,false,viewR); gl.uniform1f(progRing.u.uDim,sysDim);
       gl.uniform3f(progRing.u.uSunRel,sunRel[0],sunRel[1],sunRel[2]);
-      for(let i=0;i<BODIES.length;i++){ const b=BODIES[i]; if(!b.ring||(surfActive&&i!==followIdx)) continue;   // 地表視点では、立っている惑星の環を空に描く
+      for(let i=0;i<BODIES.length;i++){ const b=BODIES[i]; if(!b.ring||(surfActive&&i!==followIdx)||(gShow&&gShow.telescope&&i!==followIdx)) continue;   // 地表視点では、立っている惑星の環を空に描く
         gl.uniformMatrix4fv(progRing.u.uModel,false,b.spinRel); gl.uniform1f(progRing.u.uIn,b.R*b.ringIn);
         gl.uniform1f(progRing.u.uOut,b.R*b.ringOut); gl.uniform1f(progRing.u.uStyle,b.ringStyle);
         { const q=rel(b.pos); gl.uniform3f(progRing.u.uPC,q[0],q[1],q[2]); } gl.uniform1f(progRing.u.uPR,b.R);
         gl.drawArrays(gl.TRIANGLE_STRIP,0,(RSEG+1)*2); }
 
+      if(!surfActive){
+        if(gShow&&gShow.kind==='enceladus'&&gShow.t>37){const b=BODIES[5],q=rel(b.pos);
+          gl.uniformMatrix4fv(progRing.u.uModel,false,b.spinRel);gl.uniform1f(progRing.u.uIn,b.R*3.0);gl.uniform1f(progRing.u.uOut,b.R*8.0);
+          gl.uniform1f(progRing.u.uStyle,3.0);gl.uniform3f(progRing.u.uPC,...q);gl.uniform1f(progRing.u.uPR,b.R);
+          gl.uniform1f(progRing.u.uDim,sysDim*showEase((gShow.t-37)/7));gl.drawArrays(gl.TRIANGLE_STRIP,0,(RSEG+1)*2);
+        }
+        drawIceJets(proj,viewR,eye,sysDim);
+      }
       if(showMoonOrbit&&!surfActive){ gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
         gl.useProgram(progOrbit); useAttrs(progOrbit,[["aE",bufOrbit,3]]);
         gl.uniformMatrix4fv(progOrbit.u.uProj,false,proj); gl.uniformMatrix4fv(progOrbit.u.uView,false,viewR);
@@ -4125,14 +4361,16 @@
     /* ---- ラベル（「名称」「衛星名」ボタンに従う。ツアー中も表示）---- */
     const labelOK=showLabel&&(!gConst||gConst.ly<1)&&oortFade<0.55&&sysDim>0.5&&!starLookSun;
     for(let i=0;i<BODIES.length;i++){ const b=BODIES[i];
+      if(gShow&&gShow.telescope&&i!==followIdx){place(b.el,vp,b.pos,false);if(b.moons)b.moons.forEach(m=>place(m.el,vp,m.pos,false));continue;}
       if(surfActive){ place(b.el,vp,b.skyPt,labelOK&&i!==followIdx&&b.skyVis);
         if(b.moons) b.moons.forEach((m,j)=>{ if(i===2&&moonW) place(m.el,vp,v3add(eye,v3scale(moonW,skyR*0.49)),showMoonLabel&&surfFov>8); else m.el.style.opacity=0; });
         continue; }
-      place(b.el,vp,b.pos,labelOK&&!hiddenBehind(eye,b.pos,b));
+      place(b.el,vp,b.pos,labelOK&&!(gShow&&gShow.telescope)&&!hiddenBehind(eye,b.pos,b));
       const near=(followIdx===i)||(b.pos&&distE(eye,b.pos)<Math.min(26,b.R*120));
         if(b.moons) for(let j=0;j<b.moons.length;j++){ const m=b.moons[j];
         if(i===2&&surfActive&&moonW){ place(m.el,vp,v3add(eye,v3scale(moonW,skyR*0.49)),showMoonLabel&&surfFov>8); continue; }
-        place(m.el,vp,m.pos,showMoonLabel&&(!gConst||gConst.ly<1)&&near&&sysDim>0.5&&m.pos&&!hiddenBehind(eye,m.pos,null)); } }
+        const showMoonInScene=!(gShow&&gShow.telescope)||(gShow.kind==='jupiter'&&j===0);
+        place(m.el,vp,m.pos,showMoonInScene&&showMoonLabel&&(!gConst||gConst.ly<1)&&near&&sysDim>0.5&&m.pos&&!hiddenBehind(eye,m.pos,null)); } }
     if(surfActive&&followMoon&&surfaceHost&&surfacePlanetDir) place(surfaceHost.el,vp,v3add(eye,v3scale(surfacePlanetDir,skyR*0.49)),labelOK&&surfFov>8);
     if(surfActive&&sunW) place(sunLabel,vp,v3add(eye,v3scale(sunApp||sunW,skyR*0.5)),labelOK&&surfFov>8);
     else place(sunLabel,vp,[0,0,0],labelOK&&Math.hypot(eye[0],eye[1],eye[2])<DIST(120)&&!hiddenBehind(eye,[0,0,0],"sun"));
