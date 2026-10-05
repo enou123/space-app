@@ -294,7 +294,6 @@
   #gShowControls details{ margin-top:8px; max-height:24vh; overflow:auto; }
   #gShowControls summary{ cursor:pointer; color:#c3e9ff; }
   #gShowControls svg{ display:block; width:100%; max-height:135px; }
-  #welcome select{ max-width:100%; padding:10px; border-radius:12px; background:#102036; color:#dceaff; border:1px solid #5d7596; font:inherit; }
   body.guide #title{ display:none; }
   body.guide #toast{ top:auto; bottom:4vh; left:auto; right:2vw; transform:none; max-width:min(520px,46vw); }
   .guideHi{ position:relative; z-index:2; box-shadow:0 0 0 2px #ffd36a,0 0 16px 3px rgba(255,200,90,.65) !important; border-radius:10px;
@@ -338,7 +337,6 @@
   <p>いま目の前にある地球から、惑星、恒星、銀河へ。実際の天体データをもとに、宇宙の広さを旅します。</p>
   <div class="actions"><button id="welcomeTour" class="primary">宇宙の旅を始める ↗</button>
     <button id="welcomeSpect">地上の絶景 ★</button><button id="welcomeSpace">宇宙の絶景 ★</button><button id="welcomeGuide">機能紹介ツアー</button><button id="welcomeGuideAuto" title="地上と宇宙の絶景を、自動でくり返し見せます">自動で見る（展示用）</button><button id="welcomeSky">今の空を見る</button><button id="welcomeExplore">自由に探す</button><a class="manualLink" href="docs/操作マニュアル_現行版_2026-10-03.html">操作マニュアル ↗</a></div>
-  <select id="welcomeShowSelect" aria-label="天体ショーを選ぶ"><option value="">新しい天体ショーを選ぶ</option></select>
   <div class="foot">ドラッグで回転　・　ホイールで拡大縮小<br>いつでも右上の「操作」から全機能を使えます</div>
 </div>
 <div id="clock">
@@ -2925,12 +2923,12 @@
     if(kind==='saturn')gShow.crossing=findRingCrossing();
     $('gShowControls').hidden=false;$('gOceanDiagram').hidden=kind!=='enceladus';$('gOceanDiagram').open=false;
     $('gShowPause').textContent='⏸ ショーを一時停止';
-    for(const id of ['celestialShowSelect','welcomeShowSelect'])$(id).value=kind;
+    $('celestialShowSelect').value=kind;
     applyCelestialShow();setFollowUI();updateViewUI();
   }
   function clearCelestialShow(){
     if(!gShow)return;gShow=null;$('gShowControls').hidden=true;$('gOceanDiagram').open=false;
-    for(const id of ['celestialShowSelect','welcomeShowSelect'])$(id).value='';
+    $('celestialShowSelect').value='';
     delete canvas.dataset.celestialShow;delete canvas.dataset.showPhase;
     if(gShowBase){const old=gShowBase;showScale(old.mode,old.moons);years=old.years;nowLock=old.nowLock;setSpeed(old.speed);dateIn.value=old.dateInput;gShowBase=null;}
   }
@@ -3199,7 +3197,7 @@
     if(gT>=GUIDE_SEC_CUR){ if(gIdx>=GUIDE.length-1) guideShow(0); else guideShow(gIdx+1); } }
   $('gShowPause').onclick=()=>{if(!gShow)return;setAuto(false);if(gShow.t>=gShow.duration){gShow.t=0;}gShow.paused=!gShow.paused;$('gShowPause').textContent=gShow.paused?'▶ ショーを再生':'⏸ ショーを一時停止';};
   $('gShowReplay').onclick=()=>{if(!gShow)return;setAuto(false);gShow.t=0;gShow.paused=false;$('gShowPause').textContent='⏸ ショーを一時停止';applyCelestialShow();};
-  for(const id of ['celestialShowSelect','welcomeShowSelect']){const el=$(id);for(const g of CELESTIAL_SCENES){const o=document.createElement('option');o.value=g.kind;o.textContent=g.t;el.appendChild(o);}
+  {const el=$('celestialShowSelect');for(const g of CELESTIAL_SCENES){const o=document.createElement('option');o.value=g.kind;o.textContent=g.t;el.appendChild(o);}
     el.onchange=()=>{if(el.value)startSpect(SPECT_SPACE,'宇宙の絶景',false,SPECT_SPACE.findIndex(g=>g.kind===el.value));};}
   // Changing a destination/time/scale leaves the show before the normal control runs.
   const leaveShowForControl=e=>{if(!gShow||!e.target.closest('[data-fo],[data-fp],[data-sc],[data-ms],[data-sp],[data-dt],#moonTravelSelect,#starTravelSelect,#bNow,#bGo,#dateIn,#bSurface,#bOrbitView,#bTour,#bTop,#bOort,#bStarView,#bGalaxyView,#bLocalView,#bNowSky,#bNowSkyKumamoto,#bNowSkyHere,#bNowSkyAtlanta,#bSolPrev,#bSolNext,#bLunPrev,#bLunNext,#bLightF,#bLightR,#ptRow button,#bComet'))return;
@@ -3691,7 +3689,9 @@
     } else {
       eye=[focus[0]+cam.d*Math.sin(cam.ph)*Math.sin(cam.th),focus[1]+cam.d*Math.cos(cam.ph),focus[2]+cam.d*Math.sin(cam.ph)*Math.cos(cam.th)];
       lookAt=starLookSun&&followStar>=0?v3sub(focus,v3scale(v3norm(VISIT_STARS[followStar].pos),cam.d*1.12)):focus;
-      proj=M4.perspective(fov,aspect,gShow&&gShow.telescope?cam.d*0.5:starLookSun?Math.max(0.05,cam.d*0.002):cam.d*(followProbe>=0?0.02:1.2e-4),
+      // Close Enceladus views need a larger near plane: otherwise Saturn front/back
+      // triangles share depth values and flicker as the camera crosses the plume.
+      proj=M4.perspective(fov,aspect,gShow&&gShow.telescope?cam.d*0.5:starLookSun?Math.max(0.05,cam.d*0.002):cam.d*(gShow&&gShow.kind==='enceladus'?0.05:followProbe>=0?0.02:1.2e-4),
         starLookSun?Math.max(cam.d*40,Math.hypot(...eye)*1.2):Math.max(cam.d*40,4000));
       const showUp=gShow&&gShow.kind==='enceladus'?v3scale([BODIES[5].tiltMat[4],BODIES[5].tiltMat[5],BODIES[5].tiltMat[6]],-1):[0,1,0];
       view=M4.mul(M4.flip,M4.lookAt(eye,lookAt,showUp));
