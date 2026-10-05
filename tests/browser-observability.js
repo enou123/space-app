@@ -5,5 +5,7 @@ window.__featureStep=i=>guideShow(i);
 window.__tourState=()=>{
   const h=gShow&&gShow.kind==='halley'?halleyShowState(gShow.t):null;
   const points=h?[h.head,v3add(h.head,v3scale(h.dir,h.length)),v3add(h.head,v3add(v3scale(h.dir,h.length),v3scale(h.trail,h.length*.35)))].map(p=>project(curVpR,v3sub(p,curEye))):null;
-  return {feature:GUIDE_FEAT.map(g=>g.t),ground:SPECT_GROUND.map(g=>g.t),space:SPECT_SPACE.map(g=>g.t),guideOn,gIdx,panelHidden,panelTimer:!!guidePanelTimer,stereoMode,parallelGap,stereoStrength,years,scaleMode,moonScale,speed,halley:h,points,earth:BODIES[2].pos,cam:{...cam},finite:[years,...focus,...curEye].every(Number.isFinite),error:gl.getError()};
+  return {feature:GUIDE_FEAT.map(g=>g.t),ground:SPECT_GROUND.map(g=>g.t),space:SPECT_SPACE.map(g=>g.t),guideOn,gIdx,panelHidden,panelTimer:!!guidePanelTimer,stereoMode,parallelGap,stereoStrength,years,scaleMode,moonScale,speed,halley:h,points,sun:h?project(curVpR,v3scale(curEye,-1)):null,shot:gShow?.shot,eye:[...curEye],earth:BODIES[2].pos,cam:{...cam},finite:[years,...focus,...curEye].every(Number.isFinite),error:gl.getError()};
 };
+
+window.__halleyCameraSweep=()=>{let last=null,maxRoll=0,minCross=1;for(let t=0;t<=84;t+=0.025){const c=halleyCamera(halleyShowState(t),t),cross=v3cross(c.up,c.dir),right=v3norm(cross);minCross=Math.min(minCross,v3len(cross));if(last)maxRoll=Math.max(maxRoll,Math.acos(Math.max(-1,Math.min(1,v3dot(right,last)))));last=right;}return {maxRoll,minCross};};

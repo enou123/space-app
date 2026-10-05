@@ -38,7 +38,7 @@ const fs=require('fs'),path=require('path'),assert=require('assert/strict'),{chr
   const samples=[];
   for(const t of [0,6,12,20,26,32,36,40,44,47,52,58,66,76,84]){
    const s=await seek(t);samples.push({t,r:s.halley.r,length:s.halley.length});
-   if(t>=44&&t<=58){for(const point of s.points){assert(point&&point[0]>0&&point[0]<await p.evaluate(()=>innerWidth)&&point[1]>0&&point[1]<await p.evaluate(()=>innerHeight),'Whole comet fits at '+t+': '+JSON.stringify(s.points));}
+   if(t>=44&&t<=52){for(const point of s.points){assert(point&&point[0]>0&&point[0]<await p.evaluate(()=>innerWidth)&&point[1]>0&&point[1]<await p.evaluate(()=>innerHeight),'Whole comet fits at '+t+': '+JSON.stringify(s.points));}
     if(profile==='iPhone'){const card=await p.locator('#guide').boundingBox();assert(s.points[0][1]<card.y,'Comet head is above the guide card');}
    }
    if([12,47,84].includes(t))await p.screenshot({path:'/tmp/tour-'+profile+'-halley-'+t+'.png'});
