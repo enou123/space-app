@@ -1,3 +1,9 @@
 window.__showsState=()=>({show:gShow?{...gShow}:null,phase:canvas.dataset.showPhase,years,scaleMode,moonScale,speed,nowLock,spinReal,guideOn,gAuto,space:SPECT_SPACE.map(g=>g.t),all:SPECT_ALL.length,cam:{...cam},finite:[years,...focus,...curEye,...BODIES.flatMap(b=>b.pos||[])].every(Number.isFinite),error:gl.getError(),ioSizeRatio:BODIES[4].moons[0].pos?(BODIES[4].moons[0].R/distE(curEye,BODIES[4].moons[0].pos))/(BODIES[4].R/distE(curEye,BODIES[4].pos)):null,enceladusOffset:BODIES[5].moons[0].pos?v3scale(v3sub(curEye,BODIES[5].moons[0].pos),1/BODIES[5].moons[0].R):null,pole:[BODIES[5].tiltMat[4],BODIES[5].tiltMat[5],BODIES[5].tiltMat[6]],opening:gShow&&gShow.kind==='saturn'?satOpening(J2000_MS+years*YEAR_DAYS*86400000):null,io:CelestialPhysics.moonEvents(jovianGeometry(years).moons[0],jovianGeometry(years).earth,jovianGeometry(years).light,jovianGeometry(years).sunAngle),status:$('gShowStatus').textContent});
 window.__showsSeek=t=>{if(!gShow)throw Error('No show');gShow.t=t;gShow.paused=false;applyCelestialShow();gShow.paused=true;$('gShowPause').textContent='▶ ショーを再生';};
 window.__showsAdvance=()=>{gShow.paused=false;gShow.t=gShow.duration-0.01;gAuto=true;gT=GUIDE_SEC_CUR-0.01;};
+window.__featureStep=i=>guideShow(i);
+window.__tourState=()=>{
+  const h=gShow&&gShow.kind==='halley'?halleyShowState(gShow.t):null;
+  const points=h?[h.head,v3add(h.head,v3scale(h.dir,h.length)),v3add(h.head,v3add(v3scale(h.dir,h.length),v3scale(h.trail,h.length*.35)))].map(p=>project(curVpR,v3sub(p,curEye))):null;
+  return {feature:GUIDE_FEAT.map(g=>g.t),ground:SPECT_GROUND.map(g=>g.t),space:SPECT_SPACE.map(g=>g.t),guideOn,gIdx,panelHidden,panelTimer:!!guidePanelTimer,stereoMode,parallelGap,stereoStrength,years,scaleMode,moonScale,speed,halley:h,points,earth:BODIES[2].pos,cam:{...cam},finite:[years,...focus,...curEye].every(Number.isFinite),error:gl.getError()};
+};

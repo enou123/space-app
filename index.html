@@ -302,6 +302,7 @@
   @media(max-width:780px){ #guide{ width:92vw; left:4vw; top:auto; bottom:2vh; }
     #guide .gNav{flex-wrap:wrap;gap:6px;} #guide .gNav button{white-space:nowrap;font-size:11px;padding:7px 8px;} }
   @keyframes fadeIn{ to{ opacity:1; } }
+@media(max-width:780px){body.guide-stereo #parallelGapControl,body.guide-stereo #parallelGapToggle{bottom:calc(var(--guide-card-height,320px) + 22px);z-index:47}}
 </style>
 </head>
 <body class="intro">
@@ -740,7 +741,7 @@
   const HALLEY={jp:"ハレー彗星",en:"1P/Halley",a:17.834,period:75.32,ecc:0.96714,inc:162.26,node:58.42,argp:111.33,
     tp:Date.UTC(1986,1,9,11),H:5.5,tl:0.12};
   HALLEY.plane=orbitBasis(HALLEY.node,HALLEY.inc,HALLEY.argp);
-  HALLEY.M0=((J2000_MS-Date.UTC(1986,1,9))/(YEAR_DAYS*86400000)/HALLEY.period)*Math.PI*2;
+  HALLEY.M0=((J2000_MS-HALLEY.tp)/(YEAR_DAYS*86400000)/HALLEY.period)*Math.PI*2;
   function kepler(M,e){ let E=(e<0.8)?M:Math.PI;
     for(let i=0;i<24;i++){ const d=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E)); E-=d; if(Math.abs(d)<1e-10) break; }
     return E; }
@@ -1939,11 +1940,33 @@
   const TAIL_N=900,tArr=new Float32Array(TAIL_N*3);
   for(let i=0;i<TAIL_N;i++){ tArr[i*3]=Math.pow(Math.random(),0.7); tArr[i*3+1]=Math.random()-0.5; tArr[i*3+2]=Math.random()-0.5; }
   const bufTail=buffer(tArr);
-  const progTail=program(`precision highp float; attribute vec3 aT; uniform mat4 uProj,uView; uniform vec3 uHead,uDir,uSide,uUp; uniform float uLen,uDpr; varying float vA;
-    void main(){ float t=aT.x,spread=uLen*0.10*t; vec3 p=uHead+uDir*(uLen*t)+uSide*(aT.y*spread)+uUp*(aT.z*spread);
-      vec4 mv=uView*vec4(p,1.0); gl_Position=uProj*mv; gl_PointSize=(1.0+2.4*(1.0-t))*uDpr*(20.0/max(-mv.z,1.0)); vA=pow(1.0-t,1.7); }`,
-   `precision highp float; varying float vA; uniform float uDim;
-    void main(){ vec2 d=gl_PointCoord-0.5; float a=exp(-dot(d,d)*10.0)*vA*0.55*uDim; gl_FragColor=vec4(vec3(0.60,0.82,1.0)*a,a); }`);
+  const progTail=program(`precision highp float;attribute vec3 aT;
+    uniform mat4 uProj,uView;uniform vec3 uHead,uDir,uSide,uUp,uTrail;
+    uniform float uLen,uDpr,uTime,uDust,uPointScale;varying float vA,vSeed;
+    void main(){float t=fract(aT.x+uTime*0.085),spread=uLen*mix(0.045,0.15,uDust)*t;
+      vec3 p=uHead+uDir*(uLen*t)+uTrail*uLen*0.35*t*t*uDust+uSide*aT.y*spread+uUp*aT.z*spread*0.65;
+      gl_Position=uProj*uView*vec4(p,1.0);
+      // Keep grains small even when the camera is close: no oversized blurry blobs.
+      gl_PointSize=(1.0+1.8*(1.0-t))*uDpr*uPointScale;vSeed=aT.y*77.0+aT.z*103.0;
+      vA=pow(1.0-t,1.2)*smoothstep(0.0,0.018,t)*(0.65+0.35*pow(sin(uTime*2.8+vSeed),2.0));}`,
+    `precision highp float;varying float vA,vSeed;uniform float uDim,uDust;
+    void main(){vec2 p=gl_PointCoord-0.5;float r=length(p);if(r>0.5)discard;
+      float sparkle=exp(-dot(p,p)*38.0)+0.12*exp(-dot(p,p)*9.0);
+      vec3 col=mix(vec3(0.65,0.88,1.3),vec3(1.2,0.97,0.65),uDust);
+      float a=sparkle*vA*uDim;gl_FragColor=vec4(col,a);}`);
+  // Smooth ion/dust ribbons for the Halley tour; AU geometry, illustrative density.
+  const cometRibbon=[];
+  for(let i=0;i<=128;i++)cometRibbon.push(-1,i/128,1,i/128);
+  const bufCometRibbon=buffer(new Float32Array(cometRibbon));
+  const progCometRibbon=program(`precision highp float;attribute vec2 aPos;
+    uniform mat4 uProj,uView;uniform vec3 uHead,uDir,uTrail,uSide;uniform float uLen,uDust;varying vec2 vUv;
+    void main(){float t=aPos.y,w=uLen*mix(0.020,0.095,uDust)*pow(t,0.75);
+      vec3 p=uHead+uDir*uLen*t+uTrail*uLen*0.35*t*t*uDust+uSide*aPos.x*w;
+      gl_Position=uProj*uView*vec4(p,1.0);vUv=aPos;}`,
+    `precision highp float;varying vec2 vUv;uniform float uDust,uDim;
+    void main(){float t=vUv.y,core=exp(-vUv.x*vUv.x*mix(9.0,3.5,uDust));
+      float a=core*pow(max(0.0,1.0-t),0.8)*smoothstep(0.0,0.025,t)*mix(0.86,0.56,uDust)*uDim;
+      vec3 col=mix(vec3(0.30,0.75,1.5),vec3(1.15,0.90,0.52),uDust);gl_FragColor=vec4(col*a,a);}`);
   const bufQuad=buffer(new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]));
   const progGlow=program(`precision highp float; attribute vec2 aPos; uniform mat4 uProj,uView; uniform float uSize; uniform vec3 uCenter; varying vec2 vUv;
     void main(){ vUv=aPos; vec3 right=vec3(uView[0][0],uView[1][0],uView[2][0]); vec3 up=vec3(uView[0][1],uView[1][1],uView[2][1]);
@@ -2782,18 +2805,24 @@
   const clickEl=(sel)=>{ const el=document.querySelector(sel); if(el) el.click(); };
   let gOff=[];   // ツアー中に一時的に消した表示（次へ進むときに戻す）
   let guideOn=false, gIdx=0, gOn=[], gHi=[], gAuto=false, gT=0, gPan=0, gPanT=0;
+  let guidePanelTimer=0,gStereoBase=null;
   let GUIDE=null, gName="機能紹介ツアー", GUIDE_SEC_CUR=14, guideViewBase=null;
   const GUIDE_SEC=14;   // 自動で進むときの1ステップの秒数
   const GUIDE_FEAT=[
-    {t:"ようこそ",d:"このアプリは、実際の天体データと天体力学の計算式をもとに、地球から銀河の外までを旅できる宇宙シミュレーターです。<br>画面を<b>ドラッグ</b>すると向きが変わり、<b>ホイール</b>で拡大・縮小します。<br>地球の昼と夜は、いまの時刻どおりの位置に描かれています。",
+    {t:"ようこそ",d:"このアプリは、実際の天体データと天体力学の計算式をもとに、地球から銀河の外までを旅できる宇宙シミュレーターです。<br>スマートフォンは<b>1本指で見回し、2本指を広げる・狭める操作でズーム</b>。PCは<b>ドラッグとホイール</b>で操作します。<br>地球の昼と夜は、いまの時刻どおりの位置に描かれています。",
       run:()=>{ goEarthHome(); }},
-    {t:"操作パネル",d:"右上の<b>「操作を開く」</b>（または <b>H</b> キー）で、すべての機能が並んだ操作パネルを開け閉めできます。<br>このツアーでは、使う場所を<b>黄色く光らせて</b>ご案内します。",
+    {t:"操作パネル",d:"右上の<b>「操作を開く」</b>（または <b>H</b> キー）で、すべての機能が並んだ操作パネルを開け閉めできます。<br>このツアーでは、使う場所を<b>黄色く光らせて</b>ご案内します。スマートフォンでは約5秒後にパネルを閉じて、映像を見せます。必要なら右上から開き直せます。",
       panel:true,hi:["#panelToggle"],run:()=>{ goEarthHome(); }},
     {t:"時間を動かす",d:"<b>「1時間＝5秒」</b>にすると、地球が回って昼と夜の境目が動いていくのが見えます。<br>上の<b>「指定日時」</b>で好きな日時へ移動したり、◀▶ で少しずつ動かしたりもできます。",
       panel:true,hi:["#rowDate","#rowStep",'[data-sp="0.000821"]'],run:()=>{ goEarthHome(); clickEl('[data-sp="0.000821"]'); }},
     {t:"太陽系全体",d:"<b>「太陽系全体」</b>で引いて見ると、惑星がそれぞれの軌道を回っています。<br>速さは<b>「標準」</b>で1年＝36秒。惑星の位置は、表示中の日付の実際の配置です。",
       panel:true,hi:['[data-fo="-1"]','[data-sp="1"]'],run:()=>{ goEarthHome(); clickEl('[data-fo="-1"]'); setSpeed(1); nowLock=false; }},
-    {t:"惑星を追尾",d:"<b>「惑星を追尾」</b>の名前を押すと、その惑星に近づいて追いかけます。いまは<b>土星</b>。速さを<b>「×1/80」</b>にして、自転や衛星の動きをゆっくり見ています。環が本体に落とす影も見られます。<br>天体の名前をクリックすると、解説も表示されます。",
+    {t:"立体視で太陽系を見る",sec:28,panel:true,hi:['[data-stereo="parallel"]','#stereoStrength'],
+      d:'太陽系を横から、惑星が手前と奥を回る向きで見ています。<b>平行法</b>では左の映像を左目、右の映像を右目で見ると、奥行きを感じられます。<br><b>「↔ 間隔」</b>から左右の映像を中央へ寄せられます。−／＋やスライダーを試してください。<b>立体感</b>の強さも調整できます。交差法・赤シアンも選べます。次の場面で元の表示へ戻ります。',
+      run:()=>{goEarthHome();clickEl('[data-fo="-1"]');nowLock=false;setSpeed(1);
+        cam.d=cam.td=68;cam.ph=cam.tph=1.30;cam.th=cam.tth=0.65;focus.fill(0);pan.fill(0);
+        gStereoBase={mode:stereoMode,strength:stereoStrength,gap:parallelGap};setStereo('parallel');document.body.classList.add('guide-stereo');}},
+    {t:"惑星を追尾",d:"<b>「惑星を追尾」</b>の名前を押すと、その惑星に近づいて追いかけます。いまは<b>土星</b>。速さを<b>「×1/80」</b>にして、自転や衛星の動きをゆっくり見ています。環が本体に落とす影も見られます。<br>天体の名前をタップ・クリックすると、解説も表示されます。",
       panel:true,hi:["#rowFollow",'[data-sp="0.0125"]'],run:()=>{ goEarthHome(); setSpeed(0.0125); nowLock=false; clickEl('[data-fo="5"]'); }},
     {t:"縮尺を切り替える",d:"ふだんは見やすいように距離と大きさを縮めています（<b>可視化</b>）。<br><b>「実距離」</b>にすると、惑星どうしの間隔が実際の比率になり、外側の惑星がどれほど遠いかが分かります。",
       panel:true,hi:["#rowScale"],run:()=>{ goEarthHome(); clickEl('[data-fo="-1"]'); setSpeed(1); nowLock=false; clickEl('[data-sc="1"]'); }},
@@ -2883,7 +2912,7 @@
   ];
   // Celestial shows keep physical geometry separate from cinematic camera motion.
   let gShow=null,gShowBase=null;
-  const SHOW_SECONDS={jupiter:68,saturn:56,enceladus:58};
+  const SHOW_SECONDS={jupiter:68,saturn:56,enceladus:58,halley:84};
   function jovianGeometry(y){
     const b=BODIES[4],p=bodyAt(b,y,true),earth=v3norm(v3sub(bodyAt(BODIES[2],y,true),p)),light=v3norm(v3scale(p,-1));
     const tz=b.tiltMat,phi=Math.atan2(v3dot(earth,[tz[8],tz[9],tz[10]]),v3dot(earth,[tz[0],tz[1],tz[2]]));
@@ -2941,6 +2970,16 @@
     const a=m.lam0+(J2000_MS+y*YEAR_DAYS*86400000-m.t0)/86400000/m.Pd*Math.PI*2,tz=b.tiltMat;
     return v3add(bodyAt(b,y,false),[tz[0]*Math.cos(a)*b.R*m.d+tz[8]*Math.sin(a)*b.R*m.d,tz[1]*Math.cos(a)*b.R*m.d+tz[9]*Math.sin(a)*b.R*m.d,tz[2]*Math.cos(a)*b.R*m.d+tz[10]*Math.sin(a)*b.R*m.d]);
   }
+  // The orbit uses the same Halley ephemeris as the sky view; coma and tails are illustrative.
+  function halleyShowState(t){
+    const days=t<12?-240:t<36?-240+215*showEase((t-12)/24):t<58?-25+50*(t-36)/22:25+215*showEase((t-58)/26);
+    const ms=HALLEY.tp+days*86400000,au=cometReal(HALLEY,ms),head=v3scale(au,AU_UNIT),r=v3len(au);
+    const dir=v3norm(head),velocity=v3sub(cometReal(HALLEY,ms+3600000),cometReal(HALLEY,ms-3600000));
+    const trail=v3norm(v3scale(velocity,-1)),pole=v3norm(v3cross(au,velocity));
+    const activity=Math.max(0,1-r/4),length=AU_UNIT*0.45*activity*activity;
+    const bend=v3scale(trail,length*0.35),mid=v3add(v3scale(dir,length*0.45),v3scale(bend,0.20));
+    return {ms,days,head,r,dir,trail,pole,activity,length,mid};
+  }
   function applyCelestialShow(){
     const g=gShow;if(!g||g.paused)return;const t=g.t;let phase='',status='';
     if(g.kind==='jupiter'){
@@ -2969,6 +3008,17 @@
       const opening=satOpening(ms);phase=above?'above':'earth';
       status=above?'土星の上空：環はここにあります':'地球方向からの環の開き '+Math.abs(opening).toFixed(2)+'°（'+(opening>=0?'北側':'南側')+'）';
       if(!above&&Math.abs(opening)<0.25)status+=' ｜ ほぼ真横から見ています';
+    }else if(g.kind==='halley'){
+      const h=halleyShowState(t);years=yearsSinceJ2000(h.ms);g.telescope=null;
+      const wide=showEase((t-27)/17),approach=showEase(t/12),near=AU_UNIT*0.012;
+      const peakLength=AU_UNIT*0.45*Math.pow(1-HALLEY.a*(1-HALLEY.ecc)/4,2);
+      // Hold the wide camera after perihelion so the receding tail visibly shrinks.
+      const frameLength=t>=47?peakLength:h.length;
+      const distance=t<12?Math.exp(Math.log(AU_UNIT*3)+(Math.log(near)-Math.log(AU_UNIT*3))*approach):near+(Math.max(AU_UNIT*0.035,frameLength*(innerWidth<600?4.2:2.35))-near)*wide;
+      const tangent=v3norm(v3cross(h.pole,h.dir)),dir=v3norm(v3add(v3scale(h.pole,0.94),v3add(v3scale(tangent,0.32),v3scale(h.dir,0.12))));
+      followIdx=-1;followMoon=null;showPose(v3add(h.head,v3scale(h.mid,wide)),dir,distance);
+      phase=t<12?'approach':t<36?'inbound':t<58?'perihelion':'outbound';
+      status=(t<12?'遠くからハレー彗星へ接近':t<36?'彗星の頭を追尾：太陽へ近づくと尾が成長':t<58?'尾の全体を見渡す：青いイオンの尾と曲がったちりの尾':'太陽から離れ、尾が小さくなっていきます')+' ｜ 太陽から '+h.r.toFixed(2)+' AU';
     }else{
       g.telescope=null;
       years=yearsSinceJ2000(Date.UTC(2005,6,14,19));const b=BODIES[5],m=b.moons[0],sat=bodyAt(b,years,false),moon=enceladusPosition(years),pole=[b.tiltMat[4],b.tiltMat[5],b.tiltMat[6]];
@@ -3018,7 +3068,7 @@
       run:()=>{ goEarthHome(); years=yearsSinceJ2000(Date.UTC(1990,1,14,4,48)); nowLock=false; setSpeed(0); clickEl('[data-fp="0"]');
         gCam=()=>{ const p=PROBES[0].pos; return p?v3norm(v3add(v3norm(p),[0,0.22,0])):null; }; }},
     pick("銀河系の外から"),
-    {t:"アンドロメダ銀河が近づく",when:"いまから数十億年後",d:"アンドロメダ銀河は、秒速約110kmで銀河系に近づいています。約45億年後に最初の大接近が起きると予測されてきましたが、2025年の研究では、<b>100億年以内に合体する確率は約50%</b>とされ、まだ確定していません。<br>以上で宇宙の絶景ツアーは終わりです。",
+    {t:"アンドロメダ銀河が近づく",when:"いまから数十億年後",d:"アンドロメダ銀河は、秒速約110kmで銀河系に近づいています。約45億年後に最初の大接近が起きると予測されてきましたが、2025年の研究では、<b>100億年以内に合体する確率は約50%</b>とされ、まだ確定していません。",
       run:()=>{ goEarthHome(); clickEl("#bLocalView"); gCollT=-6;
         if(showLabel){ clickEl("#bLabel"); gOff.push("#bLabel"); } }}
   ];
@@ -3083,8 +3133,12 @@
     }};
   SPECT_SPACE.push(SC_SOLAR_JOURNEY);
   SPECT_SPACE.splice(SPECT_SPACE.findIndex(g=>g.t==="木星と4つの衛星のダンス")+1,0,...CELESTIAL_SCENES);
+  SPECT_SPACE.push({t:'ハレー彗星を追う：太陽への接近と長い尾',kind:'halley',when:'1986年の近日点前後・尾は模式的な表現',sec:90,
+    d:'遠くからハレー彗星の頭へ寄り、太陽に近づく様子を追尾します。完全実縮尺の軌道で進み、尾が長くなると頭から尾の先まで見渡します。太陽から離れると尾は小さくなります。<br>青いイオンの尾は太陽の反対側、ちりの尾は曲がって広がります。光る粒が頭から尾へ流れます。尾・コマの大きさ、明るさ、粒の流れは模式的な演出です。',run:()=>startCelestialShow('halley')});
   const SPECT_ALL=SPECT_GROUND.concat(SPECT_SPACE);
-  function guideClear(){ clearCelestialShow(); gHi.forEach(el=>el.classList.remove("guideHi")); gHi=[]; gPan=0; gPanT=0; meteorBoost=1; gCam=null; gLines=null; gEcl=false; gFly=null; gFb=null;
+  function guideClear(){ clearTimeout(guidePanelTimer);guidePanelTimer=0;clearCelestialShow();$('celestialShowSelect').value='';
+    if(gStereoBase){const old=gStereoBase;gStereoBase=null;setStereo(old.mode);stereoStrength=old.strength;$('stereoStrength').value=String(old.strength);$('stereoStrengthLabel').textContent=['','弱','標準','強'][old.strength];setParallelGap(old.gap);}
+    document.body.classList.remove('guide-stereo'); gHi.forEach(el=>el.classList.remove("guideHi")); gHi=[]; gPan=0; gPanT=0; meteorBoost=1; gCam=null; gLines=null; gEcl=false; gFly=null; gFb=null;
     gConst=null;if(gJourney){followStar=-1;starLookSun=false;followProbe=-1;followIdx=-1;followMoon=null;}gJourney=null;if(gJourneyTagOriginal){galaxyTag.innerHTML=gJourneyTagOriginal;gJourneyTagOriginal=null;}
     if(gCollT!==null){ gCollT=null; gColl=0; $("lightTimer").style.opacity=0; }
     gOff.forEach(sel=>{ const el=document.querySelector(sel); if(el&&!el.classList.contains("on")) el.click(); }); gOff=[];
@@ -3099,7 +3153,15 @@
     $("gPrev").disabled=gIdx===0; $("gNext").textContent=gIdx===GUIDE.length-1?"完了":"次へ ▶";
     (g.hi||[]).forEach(sel=>{ const el=document.querySelector(sel); if(el){ el.classList.add("guideHi"); gHi.push(el); } });
     if(gHi.length&&g.panel){ const el=gHi[0]; if($("panel").contains(el)) el.scrollIntoView({block:"center",behavior:"smooth"}); }
+    const selector=$('celestialShowSelect');selector.value=GUIDE===SPECT_GROUND||GUIDE===SPECT_SPACE?g.kind||((GUIDE===SPECT_GROUND?'ground:':'space:')+gIdx):'';
+    if(GUIDE===GUIDE_FEAT&&g.panel&&(mobileQuery.matches||gStereoBase)){
+      guidePanelTimer=setTimeout(()=>{guidePanelTimer=0;if(!guideOn)return;panelHidden=true;applyPanel(false);if(gStereoBase&&stereoMode==='parallel')openGapControl();},5000);
+    }
     canvas.dataset.guide=String(gIdx); gT=0; }
+  // Once the viewer uses the panel, leave it under their control for this step.
+  const keepGuidePanel=()=>{clearTimeout(guidePanelTimer);guidePanelTimer=0;};
+  $('panel').addEventListener('pointerdown',keepGuidePanel);$('panel').addEventListener('keydown',keepGuidePanel);$('panelToggle').addEventListener('pointerdown',keepGuidePanel);$('panelToggle').addEventListener('click',keepGuidePanel);
+  new ResizeObserver(()=>document.documentElement.style.setProperty('--guide-card-height',$('guide').getBoundingClientRect().height+'px')).observe($('guide'));
   function setAuto(v){ gAuto=v; gT=0; $("gAuto").classList.toggle("on",gAuto); $("gAuto").textContent=gAuto?"⏸ 自動停止":"▶ 自動で進む";
     $("gTimer").style.display=gAuto?"":"none"; }
   function startGuideAuto(){ startGuide(); setAuto(true); }
@@ -3197,8 +3259,12 @@
     if(gT>=GUIDE_SEC_CUR){ if(gIdx>=GUIDE.length-1) guideShow(0); else guideShow(gIdx+1); } }
   $('gShowPause').onclick=()=>{if(!gShow)return;setAuto(false);if(gShow.t>=gShow.duration){gShow.t=0;}gShow.paused=!gShow.paused;$('gShowPause').textContent=gShow.paused?'▶ ショーを再生':'⏸ ショーを一時停止';};
   $('gShowReplay').onclick=()=>{if(!gShow)return;setAuto(false);gShow.t=0;gShow.paused=false;$('gShowPause').textContent='⏸ ショーを一時停止';applyCelestialShow();};
-  {const el=$('celestialShowSelect');for(const g of CELESTIAL_SCENES){const o=document.createElement('option');o.value=g.kind;o.textContent=g.t;el.appendChild(o);}
-    el.onchange=()=>{if(el.value)startSpect(SPECT_SPACE,'宇宙の絶景',false,SPECT_SPACE.findIndex(g=>g.kind===el.value));};}
+  {const el=$('celestialShowSelect');const choices=new Map();
+    for(const [list,label,prefix] of [[SPECT_GROUND,'地上の絶景','ground:'],[SPECT_SPACE,'宇宙の絶景','space:']]){
+      const group=document.createElement('optgroup');group.label=label+'（'+list.length+'場面）';
+      list.forEach((g,i)=>{const o=document.createElement('option');o.value=g.kind||prefix+i;o.textContent=(i+1)+'. '+g.t;group.appendChild(o);choices.set(o.value,{list,label,index:i});});el.appendChild(group);
+    }
+    el.onchange=()=>{const choice=choices.get(el.value);if(choice)startSpect(choice.list,choice.label,false,choice.index);};}
   // Changing a destination/time/scale leaves the show before the normal control runs.
   const leaveShowForControl=e=>{if(!gShow||!e.target.closest('[data-fo],[data-fp],[data-sc],[data-ms],[data-sp],[data-dt],#moonTravelSelect,#starTravelSelect,#bNow,#bGo,#dateIn,#bSurface,#bOrbitView,#bTour,#bTop,#bOort,#bStarView,#bGalaxyView,#bLocalView,#bNowSky,#bNowSkyKumamoto,#bNowSkyHere,#bNowSkyAtlanta,#bSolPrev,#bSolNext,#bLunPrev,#bLunNext,#bLightF,#bLightR,#ptRow button,#bComet'))return;
     const pickedDate=dateIn.value,keepDate=!!e.target.closest('#dateIn,#bGo');
@@ -3693,12 +3759,13 @@
       // triangles share depth values and flicker as the camera crosses the plume.
       proj=M4.perspective(fov,aspect,gShow&&gShow.telescope?cam.d*0.5:starLookSun?Math.max(0.05,cam.d*0.002):cam.d*(gShow&&gShow.kind==='enceladus'?0.05:followProbe>=0?0.02:1.2e-4),
         starLookSun?Math.max(cam.d*40,Math.hypot(...eye)*1.2):Math.max(cam.d*40,4000));
-      const showUp=gShow&&gShow.kind==='enceladus'?v3scale([BODIES[5].tiltMat[4],BODIES[5].tiltMat[5],BODIES[5].tiltMat[6]],-1):[0,1,0];
+      const showUp=gShow&&gShow.kind==='halley'?halleyShowState(gShow.t).dir:gShow&&gShow.kind==='enceladus'?v3scale([BODIES[5].tiltMat[4],BODIES[5].tiltMat[5],BODIES[5].tiltMat[6]],-1):[0,1,0];
       view=M4.mul(M4.flip,M4.lookAt(eye,lookAt,showUp));
       viewR=M4.mul(M4.flip,M4.lookAt([0,0,0],v3sub(lookAt,eye),showUp));
     }
     // Keep the show clear of the guide card, including the tall iPhone layout.
     if(gShow){if(innerWidth<=780)proj[9]-=gShow.kind==='enceladus'?0.30:0.50;else proj[8]-=0.28;}
+    if(gStereoBase&&innerWidth<=780)proj[9]-=0.30;
     if(stereo){
       // 平行な左右カメラを投影面で収束させる。寄り目式の台形歪みを避ける。
       const target=surfActive?v3add(eye,v3scale(stereoDir,Math.max(surfaceTarget.R*8,0.02))):lookAt;
@@ -3948,12 +4015,20 @@
         const dir=[pos[0]/dd,pos[1]/dd,pos[2]/dd]; let side=[-dir[2],0,dir[0]]; const sl=Math.hypot(side[0],side[1],side[2])||1;
         side=[side[0]/sl,side[1]/sl,side[2]/sl];
         const up=[dir[1]*side[2]-dir[2]*side[1],dir[2]*side[0]-dir[0]*side[2],dir[0]*side[1]-dir[1]*side[0]];
-        if(len>0){ gl.useProgram(progTail); useAttrs(progTail,[["aT",bufTail,3]]);
+        if(len>0){
+          gl.useProgram(progCometRibbon);useAttrs(progCometRibbon,[['aPos',bufCometRibbon,2]]);
+          gl.uniformMatrix4fv(progCometRibbon.u.uProj,false,proj);gl.uniformMatrix4fv(progCometRibbon.u.uView,false,view);
+          gl.uniform3fv(progCometRibbon.u.uHead,pos);gl.uniform3fv(progCometRibbon.u.uDir,dir);gl.uniform3f(progCometRibbon.u.uTrail,0,0,0);
+          gl.uniform3fv(progCometRibbon.u.uSide,v3norm(v3cross(dir,v3norm(v3sub(eye,pos)))));
+          gl.uniform1f(progCometRibbon.u.uLen,len);gl.uniform1f(progCometRibbon.u.uDim,sysDim);gl.uniform1f(progCometRibbon.u.uDust,0);
+          gl.drawArrays(gl.TRIANGLE_STRIP,0,258);
+          gl.useProgram(progTail); useAttrs(progTail,[["aT",bufTail,3]]);
           gl.uniformMatrix4fv(progTail.u.uProj,false,proj); gl.uniformMatrix4fv(progTail.u.uView,false,view);
           gl.uniform3f(progTail.u.uHead,pos[0],pos[1],pos[2]); gl.uniform3f(progTail.u.uDir,dir[0],dir[1],dir[2]);
           gl.uniform3f(progTail.u.uSide,side[0],side[1],side[2]); gl.uniform3f(progTail.u.uUp,up[0],up[1],up[2]);
           gl.uniform1f(progTail.u.uLen,len); gl.uniform1f(progTail.u.uDpr,dpr); gl.uniform1f(progTail.u.uDim,sysDim);
-          gl.drawArrays(gl.POINTS,0,TAIL_N); }
+          gl.uniform1f(progTail.u.uTime,wall);gl.uniform1f(progTail.u.uDust,0);gl.uniform1f(progTail.u.uPointScale,1);gl.uniform3f(progTail.u.uTrail,0,0,0);
+          gl.drawArrays(gl.POINTS,0,lite?400:TAIL_N); }
         glowSetup(); gl.uniform3f(progGlow.u.uCenter,pos[0],pos[1],pos[2]); gl.uniform1f(progGlow.u.uSize,size);
         gl.uniform3f(progGlow.u.uColA,0.92,0.98,1.0); gl.uniform3f(progGlow.u.uColB,0.38,0.70,1.0);
         gl.uniform1f(progGlow.u.uPow,2.4); gl.uniform1f(progGlow.u.uGain,gain*sysDim); gl.drawArrays(gl.TRIANGLES,0,6); }
@@ -3961,8 +4036,25 @@
       const hE=kepler(((hM%(Math.PI*2))+Math.PI*2)%(Math.PI*2),HALLEY.ecc);
       HALLEY.pos=toWorld(HALLEY.plane,HALLEY.A*(Math.cos(hE)-HALLEY.ecc),HALLEY.B*Math.sin(hE));
       const act=Math.max(0,1-Math.hypot(HALLEY.pos[0],HALLEY.pos[1],HALLEY.pos[2])/distNow(4.0));
-      if(!surfActive) drawComet(HALLEY.pos, act>0.01?(2.0+act*act*16.0)*(scaleMode>0?0.6:1.0):0, 0.55+act*0.6, Math.max(cam.d*0.004,0.02));
-      if(activeComet&&!surfActive){ const c=activeComet, E=cometPhase*Math.PI*0.92;
+      if(gShow&&gShow.kind==='halley'&&!surfActive){
+        const h=halleyShowState(gShow.t);HALLEY.pos=h.head;
+        if(h.length>0){gl.useProgram(progCometRibbon);useAttrs(progCometRibbon,[['aPos',bufCometRibbon,2]]);
+          gl.uniformMatrix4fv(progCometRibbon.u.uProj,false,proj);gl.uniformMatrix4fv(progCometRibbon.u.uView,false,view);
+          gl.uniform3fv(progCometRibbon.u.uHead,h.head);gl.uniform3fv(progCometRibbon.u.uDir,h.dir);gl.uniform3fv(progCometRibbon.u.uTrail,h.trail);
+          const eyeDir=v3norm(v3sub(eye,h.head)),side=v3norm(v3cross(h.dir,eyeDir));gl.uniform3fv(progCometRibbon.u.uSide,side);
+          gl.uniform1f(progCometRibbon.u.uLen,h.length);gl.uniform1f(progCometRibbon.u.uDim,sysDim);
+          for(const dust of [1,0]){gl.uniform1f(progCometRibbon.u.uDust,dust);gl.drawArrays(gl.TRIANGLE_STRIP,0,258);}
+          gl.useProgram(progTail);useAttrs(progTail,[['aT',bufTail,3]]);
+          gl.uniformMatrix4fv(progTail.u.uProj,false,proj);gl.uniformMatrix4fv(progTail.u.uView,false,view);
+          gl.uniform3fv(progTail.u.uHead,h.head);gl.uniform3fv(progTail.u.uDir,h.dir);gl.uniform3fv(progTail.u.uSide,side);
+          gl.uniform3fv(progTail.u.uUp,v3norm(v3cross(h.dir,side)));gl.uniform3fv(progTail.u.uTrail,h.trail);
+          gl.uniform1f(progTail.u.uLen,h.length);gl.uniform1f(progTail.u.uDpr,dpr);gl.uniform1f(progTail.u.uDim,sysDim);
+          gl.uniform1f(progTail.u.uTime,gShow.t);gl.uniform1f(progTail.u.uPointScale,1.35);
+          for(const dust of [0,1]){gl.uniform1f(progTail.u.uDust,dust);gl.drawArrays(gl.POINTS,0,lite?400:TAIL_N);}
+        }
+        drawComet(HALLEY.pos,0,1.3,Math.max(AU_UNIT*0.0008,cam.d*0.006));
+      }else if(!surfActive) drawComet(HALLEY.pos, act>0.01?(2.0+act*act*16.0)*(scaleMode>0?0.6:1.0):0, 0.55+act*0.6, Math.max(cam.d*0.004,0.02));
+      if(activeComet&&!surfActive&&!(gShow&&gShow.kind==='halley')){ const c=activeComet, E=cometPhase*Math.PI*0.92;
         c.pos=toWorld(c.plane,c.A*(Math.cos(E)-c.ecc),c.B*Math.sin(E));
         const ca=Math.max(0,1-Math.hypot(c.pos[0],c.pos[1],c.pos[2])/distNow(6.0));
         drawComet(c.pos, ca>0.004?(3.0+ca*ca*26.0)*(scaleMode>0?0.6:1.0):0, 0.55+ca*0.7, Math.max(cam.d*0.006,0.02)); }
