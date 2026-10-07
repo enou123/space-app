@@ -1,0 +1,46 @@
+{
+  "dateJST": "2026-10-08",
+  "version": "blue-nebula-calibrated-v2",
+  "unitTests": 15,
+  "groupSingleAndWideDisplays": 174,
+  "finalWideDisplays": 87,
+  "viewports": {
+    "PC": [
+      1100,
+      800
+    ],
+    "iPhonePortrait": [
+      390,
+      844
+    ],
+    "iPhoneLandscape": [
+      844,
+      390
+    ]
+  },
+  "browser": "Chromium with software WebGL; iPhone viewport/touch emulation",
+  "preserved": [
+    "approved five placements and guides",
+    "all image SHA-256 checksums",
+    "three-point anchors",
+    "star names and coordinates",
+    "constellation lines",
+    "production camera controls"
+  ],
+  "knownLimits": [
+    "Original poses cannot match every joint through a similarity transform. Per-star residuals are recorded.",
+    "Cen has only two displayed catalog stars; Car/Eri/PsA each have one.",
+    "Psc illustration knot cannot simultaneously match the constellation fork and both fish through a uniform transform."
+  ],
+  "browserSuites": [
+    "constellation-calibrator",
+    "constellation-placement-all",
+    "constellation-art",
+    "constellation-sky",
+    "celestial-controls",
+    "celestial-shows",
+    "saturn-depth",
+    "tours-and-halley",
+    "halley-camera"
+  ]
+}

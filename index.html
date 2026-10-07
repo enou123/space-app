@@ -416,7 +416,7 @@
 </div>
 <div id="fallback"><div><h2 style="font-weight:400;">WebGL が利用できません</h2>
   <p style="color:#8fa9cc;">ブラウザのハードウェアアクセラレーションを有効にしてお試しください。</p></div></div>
-<script src="assets/constellations/placement.js?v=calibration-v1"></script>
+<script src="assets/constellations/placement.js?v=calibration-v2"></script>
 <script src="assets/celestial-physics.js?v=4741d5f3970f"></script>
 <script>
 "use strict";
@@ -1737,8 +1737,8 @@
     void main(){ vec2 d=gl_PointCoord-0.5; float r2=dot(d,d); if(r2>0.25) discard;
       float f=exp(-r2*5.0)*0.42+exp(-r2*20.0)*1.15; float a=f*(0.42+vB*0.58)*uAlpha; gl_FragColor=vec4(vec3(0.96,0.98,1.0)*a,a); }`);
   const OBLIQ=23.4392911*DEG, IDENT4=new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
-  /* 星座絵：三つの恒星の配置全体に、縦横比を保った最小二乗の相似変換で合わせる。
-     天球の接平面で画像の縦横比を保つ。星座線とは独立して切替。 */
+  /* 星座絵：旧3点の相似変換に、主要星と身体の部位を確認した星座別の配置調整を適用する。
+     均一拡縮・回転・移動・必要な反転のみ。星座線とは独立して切替。 */
   const constellationArt=[];
   let artLoad=null;
   const constellationArtQuality=()=>lite||Math.min(innerWidth,innerHeight)<=600?"mobile":"full";
@@ -1786,7 +1786,7 @@
     artLoad=(async()=>{
       try{
         if(!constellationArt.length){
-          const response=await fetch("assets/constellations/index.json?v=blue-nebula-calibrated-v1"); if(!response.ok) throw Error("Constellation data unavailable");
+          const response=await fetch("assets/constellations/index.json?v=blue-nebula-calibrated-v2"); if(!response.ok) throw Error("Constellation data unavailable");
           const data=await response.json();
           if(data.items.length!==CONSTELLATIONS.length) throw Error("Incomplete constellation artwork");
           constellationArt.push(...data.items.map(makeConstellationArt));

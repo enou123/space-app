@@ -46,3 +46,11 @@ node tests/constellation-calibrator.browser.cjs
 ```
 
 旧コミットの34点の天球方向・アンカー・画像ハッシュ、既存星座線とカタログの一致、5星座の部位への一致改善を検証します。ブラウザテストはPCとiPhone相当でドラッグ・二本指の拡縮／回転・反転・透明度・保存の継続・JSONのコピー／ダウンロード／読み込み、横幅と向きの切替を確認します。`CALIBRATION_SCREENSHOTS` でスクリーンショットの保存先を指定できます（既定 `/tmp/calibration`）。
+
+`tests/constellation-placement-all.browser.cjs` は残り29星座の実際のWebGL表示をPC（1100×800）、iPhone相当の縦（390×844）・横（844×390）で確認します。`1`〜`6` でグループ、`all` で29星座を指定し、`--neighbors-only` で最終広角確認を行えます。例：
+
+```sh
+SPACE_APP_TEST_URL=http://127.0.0.1:8770/ node tests/constellation-placement-all.browser.cjs all --neighbors-only
+```
+
+全34配置の保存・主要星と部位の対応点・既存5星座の値の固定も検証します。星が1個しかない3星座の自動合わせを無効にし、2点で左右どちらも同じ精度になる場合は追加反転を優先しないことを確認します。画面とタッチ操作はChromium上の再現であり、iPhone実機・Safariの実測ではありません。

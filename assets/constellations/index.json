@@ -1,5 +1,5 @@
 {
-  "version": "blue-nebula-calibrated-v1",
+  "version": "blue-nebula-calibrated-v2",
   "illustrator": "AI-generated artwork directed by the project owner",
   "placement": "three-star-similarity-with-adjustments",
   "items": [
@@ -104,7 +104,14 @@
       "file": "ursa_major.webp",
       "sha256": "b9cb8ee4edcb46829bf82282b5cc97f21b5d93700ad273a7cd80774800e0910f",
       "mobileFile": "mobile/ursa_major.webp",
-      "mobileSha256": "da45f9e753fc94243bf2a3daeb9415e66e9627a78a517de8fdcf7bf35f4c29f4"
+      "mobileSha256": "da45f9e753fc94243bf2a3daeb9415e66e9627a78a517de8fdcf7bf35f4c29f4",
+      "adjustment": {
+        "scale": 0.6202140054702864,
+        "rotationDeg": -1.2349471784535808,
+        "offsetX": -4.863541296541241,
+        "offsetY": 1.2469287379199003,
+        "flipX": false
+      }
     },
     {
       "jp": "こぐま座",
@@ -152,7 +159,14 @@
       "file": "ursa_minor.webp",
       "sha256": "0c98345652897baf9d3fa9cafa74adde2a33b2f366b3b5830e4c5205f0fc854a",
       "mobileFile": "mobile/ursa_minor.webp",
-      "mobileSha256": "91e3cab2f7c3998dbe526af61d00b7211c0f318fd6f0455e2b6d7ebf2e6e7395"
+      "mobileSha256": "91e3cab2f7c3998dbe526af61d00b7211c0f318fd6f0455e2b6d7ebf2e6e7395",
+      "adjustment": {
+        "scale": 1.0677149445849623,
+        "rotationDeg": 166.7229582179118,
+        "offsetX": -8.855261034067592,
+        "offsetY": -4.633161830833792,
+        "flipX": true
+      }
     },
     {
       "jp": "カシオペヤ座",
@@ -200,7 +214,14 @@
       "file": "cassiopeia.webp",
       "sha256": "c3c1a8019870e3a8358d1c18c9963c4bb64b4de874babeaabd45c17a90090ed8",
       "mobileFile": "mobile/cassiopeia.webp",
-      "mobileSha256": "319ec2acb79f7a782c1c02ac7119f0c4c59b23a8c1e45eaac9bd3e5f9c4ff079"
+      "mobileSha256": "319ec2acb79f7a782c1c02ac7119f0c4c59b23a8c1e45eaac9bd3e5f9c4ff079",
+      "adjustment": {
+        "scale": 0.9338064524009985,
+        "rotationDeg": 3.775436445919354,
+        "offsetX": 0.5750844368616641,
+        "offsetY": 1.4458946905364531,
+        "flipX": false
+      }
     },
     {
       "jp": "ペルセウス座",
@@ -248,7 +269,14 @@
       "file": "perseus.webp",
       "sha256": "1e0161cfbebc13174274b95f8a06480056eef29bf54d47f7188b9d99e081c36f",
       "mobileFile": "mobile/perseus.webp",
-      "mobileSha256": "b50a8ef07629c50967f9f901e3bb7775a53fd42fc7b20824d006f694fec820ad"
+      "mobileSha256": "b50a8ef07629c50967f9f901e3bb7775a53fd42fc7b20824d006f694fec820ad",
+      "adjustment": {
+        "scale": 1.0624657540514562,
+        "rotationDeg": 28.38639344368471,
+        "offsetX": -1.2504369526236587,
+        "offsetY": -0.9200053658613773,
+        "flipX": false
+      }
     },
     {
       "jp": "ぎょしゃ座",
@@ -296,7 +324,14 @@
       "file": "auriga.webp",
       "sha256": "c09a9ed475e8a42289d42686464bdb8a2d3b0138c4c5c6d816da421f7b5658ca",
       "mobileFile": "mobile/auriga.webp",
-      "mobileSha256": "0aa6c77a595890d0ccbb02d870aca82454ec50df580f61b93702059bc400e3ca"
+      "mobileSha256": "0aa6c77a595890d0ccbb02d870aca82454ec50df580f61b93702059bc400e3ca",
+      "adjustment": {
+        "scale": 1.0286442897995773,
+        "rotationDeg": -33.152796097156624,
+        "offsetX": -2.1471672690282144,
+        "offsetY": 2.319539137071761,
+        "flipX": false
+      }
     },
     {
       "jp": "おうし座",
@@ -344,7 +379,14 @@
       "file": "taurus.webp",
       "sha256": "2bb2ebe70a6bb50aa6b8849d7966bcd6a6d16abf0731adbb6b65aede8a89b2fe",
       "mobileFile": "mobile/taurus.webp",
-      "mobileSha256": "bb992b9e41475047afa5800b8c5bebaaa4813ca5ec2f6588bfae08f19f13154c"
+      "mobileSha256": "bb992b9e41475047afa5800b8c5bebaaa4813ca5ec2f6588bfae08f19f13154c",
+      "adjustment": {
+        "scale": 0.8528504898124641,
+        "rotationDeg": -69.23105288173167,
+        "offsetX": -0.9767321432472931,
+        "offsetY": 2.8570194854566386,
+        "flipX": false
+      }
     },
     {
       "jp": "ふたご座",
@@ -447,7 +489,14 @@
       "file": "canis_minor.webp",
       "sha256": "5fdccc27b758164947cdc4cb5ac166dbfddf539bdf24db0d2c4fcf0b131c1906",
       "mobileFile": "mobile/canis_minor.webp",
-      "mobileSha256": "7eac8c1b17e603eeb21347025a25b74a9b3981c87801ddbaa3b5742fa1df0e32"
+      "mobileSha256": "7eac8c1b17e603eeb21347025a25b74a9b3981c87801ddbaa3b5742fa1df0e32",
+      "adjustment": {
+        "scale": 0.41230025259486963,
+        "rotationDeg": -27.74212255174018,
+        "offsetX": 1.7892575546402756,
+        "offsetY": -2.5082329237430883,
+        "flipX": false
+      }
     },
     {
       "jp": "おおいぬ座",
@@ -495,7 +544,14 @@
       "file": "canis_major.webp",
       "sha256": "eb3c02b41db0d3c61586895e25a2ffd69abd42d79761499d64391d2560a78f80",
       "mobileFile": "mobile/canis_major.webp",
-      "mobileSha256": "118c7be5e730161dd40a49faf8c6e8e297d25bee96bf2f8d3070b56781fb49c7"
+      "mobileSha256": "118c7be5e730161dd40a49faf8c6e8e297d25bee96bf2f8d3070b56781fb49c7",
+      "adjustment": {
+        "scale": 0.6546751310685011,
+        "rotationDeg": -52.56617649179498,
+        "offsetX": -2.8857988891652884,
+        "offsetY": -1.7480297120849622,
+        "flipX": false
+      }
     },
     {
       "jp": "かに座",
@@ -543,7 +599,14 @@
       "file": "cancer.webp",
       "sha256": "e98de99f6541ecdb30710bf0b68a87ea4fa469e233efcd8726d485f669774d70",
       "mobileFile": "mobile/cancer.webp",
-      "mobileSha256": "bd1e56c7f40b4492a49bd1d0be4bdf13603421b17b7ad6bd0025bf9d3c2a0c00"
+      "mobileSha256": "bd1e56c7f40b4492a49bd1d0be4bdf13603421b17b7ad6bd0025bf9d3c2a0c00",
+      "adjustment": {
+        "scale": 1.117017853153248,
+        "rotationDeg": 117.17623781864575,
+        "offsetX": -3.9208476284177247,
+        "offsetY": 3.3510324605196273,
+        "flipX": true
+      }
     },
     {
       "jp": "しし座",
@@ -646,7 +709,14 @@
       "file": "virgo.webp",
       "sha256": "626daf7dbf29798ed948c5a9a58d9ab40b8e4d6eb661df64d4f5596fdd72d8bc",
       "mobileFile": "mobile/virgo.webp",
-      "mobileSha256": "62add9c2d13b97a06cc1051b41d2e5fc3953e8b749c80351b21193cdaf4a2155"
+      "mobileSha256": "62add9c2d13b97a06cc1051b41d2e5fc3953e8b749c80351b21193cdaf4a2155",
+      "adjustment": {
+        "scale": 0.7823832678414893,
+        "rotationDeg": 3.4374353478317516,
+        "offsetX": -1.6440130914766466,
+        "offsetY": -3.7881920358976484,
+        "flipX": false
+      }
     },
     {
       "jp": "うしかい座",
@@ -694,7 +764,14 @@
       "file": "bootes.webp",
       "sha256": "eca5ed2f4c5b5cec3ea2c2da033ca7b434963ae56eba811fb7ca896a25ba30d1",
       "mobileFile": "mobile/bootes.webp",
-      "mobileSha256": "32f3598e9ad38ca06db9a2591bd51a6b9d8acdf9bf1fdc4b11cbd4aa48a630d4"
+      "mobileSha256": "32f3598e9ad38ca06db9a2591bd51a6b9d8acdf9bf1fdc4b11cbd4aa48a630d4",
+      "adjustment": {
+        "scale": 0.9269029564762,
+        "rotationDeg": -14.021158161146218,
+        "offsetX": 2.8103594804261847,
+        "offsetY": 1.4541819667483773,
+        "flipX": false
+      }
     },
     {
       "jp": "かんむり座",
@@ -742,7 +819,14 @@
       "file": "corona_borealis.webp",
       "sha256": "942ea6c9724fb04e98893706cc69391ac9ffc5bccf982795592dc26cd6b702a1",
       "mobileFile": "mobile/corona_borealis.webp",
-      "mobileSha256": "1c5661165136396cf822565676f98a05dd24d68f47705e438cfb2221bc6348a4"
+      "mobileSha256": "1c5661165136396cf822565676f98a05dd24d68f47705e438cfb2221bc6348a4",
+      "adjustment": {
+        "scale": 0.9694543433618086,
+        "rotationDeg": 86.80961204420419,
+        "offsetX": 0.2603323556191982,
+        "offsetY": -0.12378420877679348,
+        "flipX": false
+      }
     },
     {
       "jp": "てんびん座",
@@ -790,7 +874,14 @@
       "file": "libra.webp",
       "sha256": "4aa3717c7223cb9529019abc89e509b62afbb3102bb07f81cc409a976d1566fa",
       "mobileFile": "mobile/libra.webp",
-      "mobileSha256": "070ec8d242c9a05e9df20f3642dc4b71ef771f2af0125a3f48ec95070fd5844a"
+      "mobileSha256": "070ec8d242c9a05e9df20f3642dc4b71ef771f2af0125a3f48ec95070fd5844a",
+      "adjustment": {
+        "scale": 0.9010731199035851,
+        "rotationDeg": 50.59174713606092,
+        "offsetX": 2.7238225133120273,
+        "offsetY": 2.9050784161867655,
+        "flipX": true
+      }
     },
     {
       "jp": "さそり座",
@@ -838,7 +929,14 @@
       "file": "scorpius.webp",
       "sha256": "c021c399d37651c3843ce76a5df1a446f2d47eb95676fef92bdf6ae4cbd6c477",
       "mobileFile": "mobile/scorpius.webp",
-      "mobileSha256": "8e2d94a91d4deca5254d09af0af67a6779eb7bd0a549c8c9b25b8ba391acc376"
+      "mobileSha256": "8e2d94a91d4deca5254d09af0af67a6779eb7bd0a549c8c9b25b8ba391acc376",
+      "adjustment": {
+        "scale": 1.0464709374622359,
+        "rotationDeg": 19.297634669525905,
+        "offsetX": 1.7776852615512082,
+        "offsetY": 3.979003036316363,
+        "flipX": false
+      }
     },
     {
       "jp": "へびつかい座",
@@ -886,7 +984,14 @@
       "file": "ophiuchus.webp",
       "sha256": "9936957494a6c23af4d5a66b2332bcc020e955c7fb6132be3f89b4b2f3c647f0",
       "mobileFile": "mobile/ophiuchus.webp",
-      "mobileSha256": "9900bc3311ac4a2dfcc3b00aed562e84c16cbd4ded6d6bdc2b6625f77b1d743e"
+      "mobileSha256": "9900bc3311ac4a2dfcc3b00aed562e84c16cbd4ded6d6bdc2b6625f77b1d743e",
+      "adjustment": {
+        "scale": 0.5382659957554244,
+        "rotationDeg": 9.773494465365388,
+        "offsetX": 1.2839259504374285,
+        "offsetY": -3.865332474147363,
+        "flipX": true
+      }
     },
     {
       "jp": "ヘルクレス座",
@@ -934,7 +1039,14 @@
       "file": "hercules.webp",
       "sha256": "04f799ea30f7effb6269b7b77e161c9b4b26b475796127dccd381aedecb1e21a",
       "mobileFile": "mobile/hercules.webp",
-      "mobileSha256": "2ff956842c62afeb183b1f01158e9802278e85f9b9bee7afa95f911f9f685d33"
+      "mobileSha256": "2ff956842c62afeb183b1f01158e9802278e85f9b9bee7afa95f911f9f685d33",
+      "adjustment": {
+        "scale": 0.8993215754029669,
+        "rotationDeg": -3.4087482087868466,
+        "offsetX": -0.44653955705823895,
+        "offsetY": -7.085419211299771,
+        "flipX": false
+      }
     },
     {
       "jp": "いて座",
@@ -982,7 +1094,14 @@
       "file": "sagittarius.webp",
       "sha256": "b093cc18ac6410a51fb20d9ad0072bdfff48fa4fd670c78c6a9321538bd8eb37",
       "mobileFile": "mobile/sagittarius.webp",
-      "mobileSha256": "29613482cf7ba28573f90319fd49b3165e97a70a5b211bc24a7eff9e0f62758f"
+      "mobileSha256": "29613482cf7ba28573f90319fd49b3165e97a70a5b211bc24a7eff9e0f62758f",
+      "adjustment": {
+        "scale": 0.4186569144060211,
+        "rotationDeg": 2.800583502831387,
+        "offsetX": 2.9279242052595267,
+        "offsetY": -1.4394628960143896,
+        "flipX": false
+      }
     },
     {
       "jp": "こと座",
@@ -1030,7 +1149,14 @@
       "file": "lyra.webp",
       "sha256": "64d84807540d88351ea979fa644850687ac8744d8b477b6d044e56a7e5081702",
       "mobileFile": "mobile/lyra.webp",
-      "mobileSha256": "c764b6c1c7b726bd8c9c520152f283c7d94216e62340b6c4a7d756ea274accd4"
+      "mobileSha256": "c764b6c1c7b726bd8c9c520152f283c7d94216e62340b6c4a7d756ea274accd4",
+      "adjustment": {
+        "scale": 0.7561012055180386,
+        "rotationDeg": 3.780315192077637,
+        "offsetX": 0.6029759500508066,
+        "offsetY": -0.9202193838110946,
+        "flipX": true
+      }
     },
     {
       "jp": "はくちょう座",
@@ -1078,7 +1204,14 @@
       "file": "cygnus.webp",
       "sha256": "d9381fc22100f3222e9af244c8d993b2b3abde076b501c09c6ed091f07670076",
       "mobileFile": "mobile/cygnus.webp",
-      "mobileSha256": "e21cb7e2bac5d5a82160e5a7bae4c28e142d3d15b81f48ee556c701f9b3381b5"
+      "mobileSha256": "e21cb7e2bac5d5a82160e5a7bae4c28e142d3d15b81f48ee556c701f9b3381b5",
+      "adjustment": {
+        "scale": 0.4258333057686799,
+        "rotationDeg": -2.4054731701662604,
+        "offsetX": 6.741704883480099,
+        "offsetY": -5.038512336572988,
+        "flipX": false
+      }
     },
     {
       "jp": "わし座",
@@ -1126,7 +1259,14 @@
       "file": "aquila.webp",
       "sha256": "450de64b9846ee0adef51dd7bd0353461f0304b14658cd19bb8bb95e8cc1b378",
       "mobileFile": "mobile/aquila.webp",
-      "mobileSha256": "faf49a2b5c9d839b90678f8dd34bfbd3f795ffc416ca736e943f9b8d44fa3751"
+      "mobileSha256": "faf49a2b5c9d839b90678f8dd34bfbd3f795ffc416ca736e943f9b8d44fa3751",
+      "adjustment": {
+        "scale": 0.7259624849334132,
+        "rotationDeg": 104.5892528263978,
+        "offsetX": 2.1397164441978265,
+        "offsetY": 1.6195199265785565,
+        "flipX": false
+      }
     },
     {
       "jp": "やぎ座",
@@ -1174,7 +1314,14 @@
       "file": "capricornus.webp",
       "sha256": "fbd63901e4420b07809c05ba1c67d169ad16bd006bd00877052a0afa9ae40bde",
       "mobileFile": "mobile/capricornus.webp",
-      "mobileSha256": "b7890068c3aef8b2b22d5644c51061fed1844839a2ab7437e1005fcdee2fb293"
+      "mobileSha256": "b7890068c3aef8b2b22d5644c51061fed1844839a2ab7437e1005fcdee2fb293",
+      "adjustment": {
+        "scale": 0.8215288742386732,
+        "rotationDeg": 23.34894247004513,
+        "offsetX": 2.74933262760269,
+        "offsetY": 0.7379903097544182,
+        "flipX": false
+      }
     },
     {
       "jp": "みずがめ座",
@@ -1222,7 +1369,14 @@
       "file": "aquarius.webp",
       "sha256": "83f0966b25ef8248f3225e2024481a6b8d918924bb4829eebb38835dafa5a31d",
       "mobileFile": "mobile/aquarius.webp",
-      "mobileSha256": "ac299e1ad724262d0f66cb968cecce7199992cbb5f2af604b32f330499f57aab"
+      "mobileSha256": "ac299e1ad724262d0f66cb968cecce7199992cbb5f2af604b32f330499f57aab",
+      "adjustment": {
+        "scale": 0.6956520274125547,
+        "rotationDeg": 42.70102502205259,
+        "offsetX": -3.7480977409721548,
+        "offsetY": 6.3674076577855825,
+        "flipX": false
+      }
     },
     {
       "jp": "ペガスス座（秋の四辺形）",
@@ -1380,7 +1534,14 @@
       "file": "pisces.webp",
       "sha256": "7146a4f890a3d8f13d88b484c716f9601217614376422cf89bd4757b522ea410",
       "mobileFile": "mobile/pisces.webp",
-      "mobileSha256": "1567edc009c1766670237a19fb4e690c802a3ae2cd4b08a74ebdce416c1b5560"
+      "mobileSha256": "1567edc009c1766670237a19fb4e690c802a3ae2cd4b08a74ebdce416c1b5560",
+      "adjustment": {
+        "scale": 1.0075254044820041,
+        "rotationDeg": 156.16142876255935,
+        "offsetX": -5.915596744518159,
+        "offsetY": -6.4355636589754415,
+        "flipX": true
+      }
     },
     {
       "jp": "おひつじ座",
@@ -1428,7 +1589,14 @@
       "file": "aries.webp",
       "sha256": "279b6cc555d90b25cd52e1521a645bd587cbd0621356e93c2dd77d0ca88384c5",
       "mobileFile": "mobile/aries.webp",
-      "mobileSha256": "28a96db1e27d6e9ffd1ae1474f771b60a5fab7de89adbd1e2a5a5a8cd880d2bd"
+      "mobileSha256": "28a96db1e27d6e9ffd1ae1474f771b60a5fab7de89adbd1e2a5a5a8cd880d2bd",
+      "adjustment": {
+        "scale": 0.38217652302188043,
+        "rotationDeg": 80.59008851677902,
+        "offsetX": 6.554269619240415,
+        "offsetY": 0.4668023484815847,
+        "flipX": true
+      }
     },
     {
       "jp": "みなみじゅうじ座",
@@ -1476,7 +1644,14 @@
       "file": "crux.webp",
       "sha256": "a305bf2630b4347019245eb7a49f49ad316d7ff9b1ce061b217ec351e553f247",
       "mobileFile": "mobile/crux.webp",
-      "mobileSha256": "725d8a1bdd42e3be77ed0166d47823ff647c468fcb704256fd02a013fc27a074"
+      "mobileSha256": "725d8a1bdd42e3be77ed0166d47823ff647c468fcb704256fd02a013fc27a074",
+      "adjustment": {
+        "scale": 0.9658526519809452,
+        "rotationDeg": 1.023701039315597,
+        "offsetX": -0.03089790101087203,
+        "offsetY": -0.13071997443963873,
+        "flipX": true
+      }
     },
     {
       "jp": "ケンタウルス座",
@@ -1524,7 +1699,14 @@
       "file": "centaurus.webp",
       "sha256": "85878eb5c2c3961c51ecad6959b7474ae052da95a57b29dea9bbd208ef542934",
       "mobileFile": "mobile/centaurus.webp",
-      "mobileSha256": "29eb3a13a8f7f2f72abf33e4829c373c000fb6bff59fc000edad218f8d4fc372"
+      "mobileSha256": "29eb3a13a8f7f2f72abf33e4829c373c000fb6bff59fc000edad218f8d4fc372",
+      "adjustment": {
+        "scale": 0.5295164798404958,
+        "rotationDeg": -34.27844887037054,
+        "offsetX": -3.878384569908433,
+        "offsetY": -0.5450955794343008,
+        "flipX": false
+      }
     },
     {
       "jp": "りゅうこつ座",
@@ -1572,7 +1754,14 @@
       "file": "argonavis.webp",
       "sha256": "4cd7bcaf53dad393242c96649fa12d818213a0fe4645219926b50c03e34dbaaf",
       "mobileFile": "mobile/argonavis.webp",
-      "mobileSha256": "6a13c7dd2e7f8aef5ff5e6b2d3ca5b4ba28df3470b16b7e2f55c2f51cec9405f"
+      "mobileSha256": "6a13c7dd2e7f8aef5ff5e6b2d3ca5b4ba28df3470b16b7e2f55c2f51cec9405f",
+      "adjustment": {
+        "scale": 0.35,
+        "rotationDeg": 0,
+        "offsetX": 26.037,
+        "offsetY": -7.9713,
+        "flipX": false
+      }
     },
     {
       "jp": "エリダヌス座",
@@ -1620,7 +1809,14 @@
       "file": "eridanus.webp",
       "sha256": "1daf695385d118aacacbca3c5fa15e48b583dd16d6749fff2d5748b7d56d1595",
       "mobileFile": "mobile/eridanus.webp",
-      "mobileSha256": "22fe95adb1ab7e5a951adb16ed11e10d828a2b90de35239da86968c1b4dce8bb"
+      "mobileSha256": "22fe95adb1ab7e5a951adb16ed11e10d828a2b90de35239da86968c1b4dce8bb",
+      "adjustment": {
+        "scale": 0.3,
+        "rotationDeg": 0,
+        "offsetX": 13.0579,
+        "offsetY": -22.9793,
+        "flipX": false
+      }
     },
     {
       "jp": "みなみのうお座",
@@ -1668,7 +1864,14 @@
       "file": "piscis_austrinus.webp",
       "sha256": "467a2c9abe5b71c3e54384109f29ae73ba1d71ae292af9108ae89b77c06992bf",
       "mobileFile": "mobile/piscis_austrinus.webp",
-      "mobileSha256": "094073cb886e54b221e1ffffa5809692ef48f1aa497915450e4fdc6e669868a8"
+      "mobileSha256": "094073cb886e54b221e1ffffa5809692ef48f1aa497915450e4fdc6e669868a8",
+      "adjustment": {
+        "scale": 0.75,
+        "rotationDeg": 0,
+        "offsetX": -0.7786,
+        "offsetY": 2.0717,
+        "flipX": false
+      }
     }
   ]
 }

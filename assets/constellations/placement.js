@@ -53,7 +53,7 @@
    if(Math.hypot(A,B)<.05||Math.hypot(A,B)>5||Math.abs(Math.atan(offset[0])/DEG)>80||Math.abs(Math.atan(offset[1])/DEG)>80)continue;
    const adjustment=validate({scale:Math.hypot(A,B),rotationDeg:Math.atan2(B,A)/DEG,offsetX:Math.atan(offset[0])/DEG,offsetY:Math.atan(offset[1])/DEG,flipX});
    const fitted=map(f,adjustment),loss=guides.reduce((s,g,i)=>s+weights[i]*dot(sub(point(fitted,...g.uv),targets[i]),sub(point(fitted,...g.uv),targets[i])),0)/W;
-   if(!best||loss<best.loss)best={adjustment,loss,errors:errors(f,adjustment,guides,stars)};
+   if(!best||loss<best.loss-1e-12)best={adjustment,loss,errors:errors(f,adjustment,guides,stars)};
   }
   if(!best)throw Error("対応点から調整可能な配置を求められません");
   return best;

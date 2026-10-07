@@ -7,7 +7,7 @@ function apply(exported,index,layout){
  const known=new Set(index.items.map(i=>i.code)),values={};
  for(const [code,value]of entries){if(!known.has(code)||!layout.items.some(i=>i.code===code))throw Error('Unknown constellation: '+code);values[code]=P.validate(value);}
  const update=data=>({...data,placement:'three-star-similarity-with-adjustments',items:data.items.map(i=>values[i.code]?{...i,adjustment:values[i.code]}:i)});
- const next=update(index);next.version='blue-nebula-calibrated-v1';
+ const next=update(index);next.version='blue-nebula-calibrated-v2';
  const nextLayout=update(layout);nextLayout.version=next.version;
  return {index:next,layout:nextLayout,calibration:{...exported,baseVersion:next.version,constellations:values}};
 }
