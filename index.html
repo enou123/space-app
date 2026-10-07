@@ -410,12 +410,13 @@
   <div class="row"><span class="lab">低速</span><div class="btns"><button data-sp="0">停止</button><button data-sp="0.0125">×1/80</button><button data-sp="0.025">×1/40</button><button data-sp="0.05">×1/20</button><button data-sp="0.1">×1/10</button><button data-sp="0.25">×1/4</button><button data-sp="0.5">×1/2</button></div></div>
   <div class="row"><span class="lab">標準以上</span><div class="btns"><button data-sp="1" class="on">標準</button><button data-sp="4">×4</button><button data-sp="16">×16</button><button data-sp="60">×60</button><button data-sp="600">×600</button></div></div>
   <div class="row sep" id="rowShow"><span class="lab">表示</span><div class="btns"><button id="bOrbit" class="on">軌道</button><button id="bLabel" class="on">名称</button><button id="bMoon" class="on">衛星名</button><button id="bMoonOrbit" class="on">衛星軌道</button><button id="bConst">星座線</button><button id="bConstArt" aria-pressed="false" aria-controls="rowConstArt" title="34星座のイラストを星の位置に重ねます">星座イラスト</button><button id="bAster">星群（大三角など）</button><button id="bGrid">黄道・天の赤道</button><button id="bTrail">探査機の航跡</button><button id="bTrailHistory" title="最近の航跡と長期経路を切り替えます。カッシーニの土星周回は重なりを避けるため直近だけ表示します">航跡：最近</button><button id="bMW" class="on">天の川</button><button id="bAur" class="on">オーロラ</button><button id="bMeteor" class="on" title="地表から空を見ているとき、その日に活動している流星群の流星を流す">流星群</button><button id="bSpin" title="地球以外の惑星と太陽の自転の速さ（地球は常に実際の時刻に同期）">自転：見やすい速さ</button></div></div>
-  <div class="row" id="rowConstArt" style="display:none"><label class="lab" for="constArtOpacity">絵の濃さ</label><div class="btns"><input id="constArtOpacity" type="range" min="10" max="100" step="5" value="40" style="width:150px"><span id="constArtOpacityVal" class="val">40%</span></div></div>
+  <div class="row" id="rowConstArt" style="display:none"><label class="lab" for="constArtOpacity">絵の濃さ</label><div class="btns"><input id="constArtOpacity" type="range" min="10" max="100" step="5" value="40" style="width:150px"><span id="constArtOpacityVal" class="val">40%</span><a href="tools/constellation-calibrator.html" target="_blank" rel="noopener" style="color:#a8cfff">配置を調整 ↗</a></div></div>
   <div class="row"><span class="lab">天体</span><div class="btns"><button id="bBelt" class="on">小惑星帯</button><button id="bKuiper" class="on">カイパー帯</button><button id="bOortShow" class="on">オールト雲</button><button id="bProbe" class="on">探査機</button><button id="bStars" class="on">近傍恒星</button><button id="bGlob" class="on">球状星団</button><button id="bGalaxy" class="on">銀河系</button><button id="bHalo" class="on">ダークマター</button><button id="bLocal" class="on">局所銀河群</button></div></div>
   <div class="row sep"><span class="lab">動作</span><div class="btns"><button id="bLite">軽量モード</button><span id="liteNote" class="val" style="color:#ffc98a;"></span></div></div>
 </div>
 <div id="fallback"><div><h2 style="font-weight:400;">WebGL が利用できません</h2>
   <p style="color:#8fa9cc;">ブラウザのハードウェアアクセラレーションを有効にしてお試しください。</p></div></div>
+<script src="assets/constellations/placement.js?v=calibration-v1"></script>
 <script src="assets/celestial-physics.js?v=4741d5f3970f"></script>
 <script>
 "use strict";
@@ -1747,28 +1748,11 @@
     `precision mediump float; uniform sampler2D uTexture; uniform float uAlpha; varying vec2 vUV;
     void main(){ vec4 t=texture2D(uTexture,vUV);
       float alpha=t.a*uAlpha; gl_FragColor=vec4(t.rgb*alpha,alpha); }`);
-  function constellationArtFrame(anchors){
-    const [a,b]=anchors,center=v3norm(anchors.reduce((p,a)=>v3add(p,a.direction),[0,0,0]));
-    const delta=v3sub(b.direction,a.direction),right=v3norm(v3sub(delta,v3scale(center,v3dot(delta,center)))),up=v3norm(v3cross(center,right));
-    const target=anchors.map(a=>{const d=v3dot(a.direction,center);return [v3dot(a.direction,right)/d,v3dot(a.direction,up)/d];});
-    const mid=[0,1].map(k=>anchors.reduce((s,a)=>s+a.uv[k],0)/3),offset=[0,1].map(k=>target.reduce((s,t)=>s+t[k],0)/3);
-    const signedArea=p=>(p[1][0]-p[0][0])*(p[2][1]-p[0][1])-(p[1][1]-p[0][1])*(p[2][0]-p[0][0]);
-    const sourceArea=signedArea(anchors.map(a=>a.uv));
-    if(Math.abs(sourceArea)<1e-8) throw Error("Invalid constellation guide points");
-    const mirror=sourceArea*signedArea(target)<0?-1:1;
-    let A=0,B=0,S=0;
-    anchors.forEach((a,i)=>{const x=a.uv[0]-mid[0],y=(a.uv[1]-mid[1])*mirror,tx=target[i][0]-offset[0],ty=target[i][1]-offset[1];
-      A+=x*tx+y*ty;B+=x*ty-y*tx;S+=x*x+y*y;});
-    return {center,right,up,mid,offset,mirror,A:A/S,B:B/S,scale:Math.hypot(A,B)/S};
-  }
-  function constellationArtDirection(frame,u,v){
-    const du=u-frame.mid[0],dv=(v-frame.mid[1])*frame.mirror,
-      x=frame.A*du-frame.B*dv+frame.offset[0],y=frame.B*du+frame.A*dv+frame.offset[1];
-    return v3norm(frame.center.map((s,i)=>s+frame.right[i]*x+frame.up[i]*y));
-  }
+  function constellationArtFrame(anchors){ return ConstellationPlacement.frame(anchors); }
+  function constellationArtDirection(frame,u,v,adjustment){ return ConstellationPlacement.direction(frame,u,v,adjustment); }
   function makeConstellationArt(item){
-    const frame=constellationArtFrame(item.anchors),positions=[],uvs=[],N=24;
-    function vertex(u,v){ positions.push(...constellationArtDirection(frame,u,v)); uvs.push(u,v); }
+    const frame=constellationArtFrame(item.anchors),mapping=ConstellationPlacement.map(frame,item.adjustment),positions=[],uvs=[],N=24;
+    function vertex(u,v){ positions.push(...ConstellationPlacement.directionFromMap(mapping,u,v)); uvs.push(u,v); }
     for(let y=0;y<N;y++) for(let x=0;x<N;x++){
       const u=x/N,v=y/N,U=(x+1)/N,V=(y+1)/N;
       vertex(u,v); vertex(U,v); vertex(u,V); vertex(U,v); vertex(U,V); vertex(u,V); }
@@ -1802,7 +1786,7 @@
     artLoad=(async()=>{
       try{
         if(!constellationArt.length){
-          const response=await fetch("assets/constellations/index.json?v=blue-nebula-v1"); if(!response.ok) throw Error("Constellation data unavailable");
+          const response=await fetch("assets/constellations/index.json?v=blue-nebula-calibrated-v1"); if(!response.ok) throw Error("Constellation data unavailable");
           const data=await response.json();
           if(data.items.length!==CONSTELLATIONS.length) throw Error("Incomplete constellation artwork");
           constellationArt.push(...data.items.map(makeConstellationArt));

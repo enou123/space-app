@@ -1,0 +1,13 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>星座イラスト配置キャリブレーター</title><link rel="stylesheet" href="constellation-calibrator.css"></head><body>
+<header><div><h1>星座イラストの配置調整</h1><p>絵を動かして、星座線の肩・頭・胴・足に合わせます。</p></div><a href="../index.html">アプリに戻る ↗</a></header>
+<main><div class="toolbar"><label for="constellationSelect">対象星座</label><select id="constellationSelect" disabled></select><button id="fitView">星座線に寄る</button><button id="fitAll">絵全体を見る</button><label><input id="showNames" type="checkbox" checked>星名</label><label><input id="showGuides" type="checkbox">意味の対応点</label></div>
+<div class="workspace"><section class="stage" aria-label="星座線とイラストの比較"><canvas id="stage" tabindex="0" aria-label="ドラッグで画像を移動。二本指で拡大・回転できます。"></canvas><div class="compass">天の北 ↑ · 東 ←</div><div id="loading" role="status">読み込み中…</div></section>
+<section class="controls" aria-label="配置の調整値"><h2 id="selectedName">配置</h2><p class="hint">絵をドラッグで移動。ホイールで拡縮。タッチは二本指で拡縮・回転。</p>
+<div id="fields"></div><label class="check"><input id="flipX" type="checkbox">左右反転</label>
+<label class="opacity">絵の透明度 <output id="opacityValue">55%</output><input id="opacity" type="range" min="0" max="100" step="5" value="55"></label>
+<div class="buttons"><button id="autoFit">主要星で合わせる</button><button id="reset">公開版の値に戻す</button><button id="baseline">3点アンカーだけに戻す</button></div><p id="guideSummary" class="hint"></p>
+<details id="guideDetails"><summary>主要星と身体の対応を確認</summary><table><thead><tr><th>星</th><th>絵の部位</th><th>ずれ</th></tr></thead><tbody id="guideTable"></tbody></table><p class="hint">部位と星のずれを線で表示できます。元のポーズと星の配置は異なるため、すべての関節を厳密に一致させるものではありません。</p></details>
+<label for="exportScope">JSONに含める範囲</label><select id="exportScope"><option value="configured">調整済みの星座</option><option value="current">この星座</option><option value="all">全34星座</option></select>
+<textarea id="jsonOutput" rows="10" readonly aria-label="調整値JSON"></textarea><div class="buttons"><button id="copy">JSONをコピー</button><button id="save">JSONを保存</button><label class="file">JSONを読み込む<input id="import" type="file" accept="application/json,.json"></label></div>
+<p class="hint">変更はこのブラウザに自動保存。JSONの保存先はブラウザで選べます。アプリへ反映するには、書き出したJSONをプロジェクトへ適用します。</p><p class="hint">位置X/Yは接平面の角度（度）。正のXは右、正のYは上。回転は反時計回り。透明度はプレビュー用です。</p><p id="status" role="status" aria-live="polite"></p></section></div></main>
+<script src="../assets/constellations/placement.js?v=calibration-v1"></script><script src="constellation-calibrator.js"></script></body></html>

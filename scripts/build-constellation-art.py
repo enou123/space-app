@@ -29,5 +29,5 @@ for item in layout['items']:
             entry['mobileFile' if level == 'mobile' else 'file'] = str(target.relative_to(assets))
             entry['mobileSha256' if level == 'mobile' else 'sha256'] = hashlib.sha256(target.read_bytes()).hexdigest()
         items.append(entry)
-(assets / 'index.json').write_text(json.dumps({'version': 'blue-nebula-v1', 'illustrator': 'AI-generated artwork directed by the project owner', 'placement': 'three-star-similarity', 'items': items}, ensure_ascii=False, indent=2) + '\n')
+(assets / 'index.json').write_text(json.dumps({'version': layout.get('version', 'blue-nebula-v1'), 'illustrator': 'AI-generated artwork directed by the project owner', 'placement': layout['placement'], 'items': items}, ensure_ascii=False, indent=2) + '\n')
 print(f'Built {len(items)} full and mobile textures')

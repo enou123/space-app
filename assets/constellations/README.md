@@ -21,3 +21,9 @@ PNG原本34点は [素材ダウンロード](../../downloads/) からまとめ�
 - 伝統的なモチーフの参考：Johannes Hevelius『Uranographia』(1690)、『Urania’s Mirror』。古典の持ち物・動物・神話上の役割を参考にし、絵そのものは複製していません。
 
 `index.json` には星座コード・画像名・ガイド座標・Hipparcos ID・天球方向と、PNG原本および配信用画像のSHA-256を記録しています。
+
+## 星座別の配置調整
+
+3点アンカーは残し、`adjustment` に拡縮・回転・位置・反転の補正を保持します。今回はオリオン・しし・アンドロメダ・ふたご・ペガススの5星座のみ。画像の内容は変更していません。アプリと配置調整画面は同じ `placement.js` を使用します。
+
+[配置キャリブレーター](../../tools/constellation-calibrator.html) · [原因・座標仕様・調整結果とスクリーンショット](../../docs/constellation-calibration/README.md)

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "baseVersion": "blue-nebula-calibrated-v1",
+  "offsetUnit": "gnomonic-degrees",
+  "constellations": {
+    "Ori": {
+      "scale": 0.7785121582112603,
+      "rotationDeg": -0.8816454905982027,
+      "offsetX": -0.36325308013950647,
+      "offsetY": -3.01160945590339,
+      "flipX": true
+    },
+    "Gem": {
+      "scale": 0.8243572828362653,
+      "rotationDeg": 28.187144609672032,
+      "offsetX": -1.6453390255103697,
+      "offsetY": 6.724013506688765,
+      "flipX": true
+    },
+    "Leo": {
+      "scale": 0.7119726831253381,
+      "rotationDeg": 4.784557465832677,
+      "offsetX": -0.4451818419481483,
+      "offsetY": 2.757714903877912,
+      "flipX": false
+    },
+    "Peg": {
+      "scale": 1.000418055691099,
+      "rotationDeg": -16.76334798439848,
+      "offsetX": 5.990287463793315,
+      "offsetY": 0.6332043043152008,
+      "flipX": false
+    },
+    "And": {
+      "scale": 1.1107968640888217,
+      "rotationDeg": -6.665642331469371,
+      "offsetX": 0.5940402613718461,
+      "offsetY": -0.30139090578484584,
+      "flipX": true
+    }
+  }
+}

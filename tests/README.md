@@ -37,3 +37,12 @@ node tests/constellation-sky.browser.cjs
 34点の重複・欠落・チェックサム、ガイド恒星の位置合わせ、投影の縦横比と左右を確認します。ブラウザではPC通常画像、iPhone相当の軽量画像、6種の代表構図、濃さの変更、軽量モードへの切替、横向き、オフ・オン時の再利用、1枚の読み込み失敗後の再試行を検証します。画像と結果は `/tmp/constellation-*` に保存します。公開アプリにはテスト用関数を含めません。
 
 `tests/constellation-sky.browser.cjs` は熊本の夜空、月面の空でイラストと地面・星座線が共存することをPC・iPhone相当で確認し、素材ページのZIPがブラウザからダウンロードできることも検証します。
+
+## 星座イラストの配置調整
+
+```sh
+node --test tests/constellation-placement.test.cjs
+node tests/constellation-calibrator.browser.cjs
+```
+
+旧コミットの34点の天球方向・アンカー・画像ハッシュ、既存星座線とカタログの一致、5星座の部位への一致改善を検証します。ブラウザテストはPCとiPhone相当でドラッグ・二本指の拡縮／回転・反転・透明度・保存の継続・JSONのコピー／ダウンロード／読み込み、横幅と向きの切替を確認します。`CALIBRATION_SCREENSHOTS` でスクリーンショットの保存先を指定できます（既定 `/tmp/calibration`）。

@@ -1,7 +1,7 @@
 {
-  "version": "blue-nebula-v1",
+  "version": "blue-nebula-calibrated-v1",
   "illustrator": "AI-generated artwork directed by the project owner",
-  "placement": "three-star-similarity",
+  "placement": "three-star-similarity-with-adjustments",
   "items": [
     {
       "jp": "オリオン座",
@@ -49,7 +49,14 @@
       "file": "orion.webp",
       "sha256": "4dd709227f7649a72f2c1b59d0d8e0384870860bddd529ae9ce224d6fc7afd85",
       "mobileFile": "mobile/orion.webp",
-      "mobileSha256": "ffe4dd4729e90eea0f6e9807817a12b968b9f25d49382f2b54531ed64ff5dce6"
+      "mobileSha256": "ffe4dd4729e90eea0f6e9807817a12b968b9f25d49382f2b54531ed64ff5dce6",
+      "adjustment": {
+        "scale": 0.7785121582112603,
+        "rotationDeg": -0.8816454905982027,
+        "offsetX": -0.36325308013950647,
+        "offsetY": -3.01160945590339,
+        "flipX": true
+      }
     },
     {
       "jp": "おおぐま座（北斗七星）",
@@ -385,7 +392,14 @@
       "file": "gemini.webp",
       "sha256": "7962e287a2b33d8bcb347d4c371b4c5b0d5077508bbb6eb0149ba854e5b29d63",
       "mobileFile": "mobile/gemini.webp",
-      "mobileSha256": "163d6748d6428eccde1f05d67cc1947f754b6c4c24e7349e404be5aabe755466"
+      "mobileSha256": "163d6748d6428eccde1f05d67cc1947f754b6c4c24e7349e404be5aabe755466",
+      "adjustment": {
+        "scale": 0.8243572828362653,
+        "rotationDeg": 28.187144609672032,
+        "offsetX": -1.6453390255103697,
+        "offsetY": 6.724013506688765,
+        "flipX": true
+      }
     },
     {
       "jp": "こいぬ座",
@@ -577,7 +591,14 @@
       "file": "leo.webp",
       "sha256": "a56e66e39c765b56963a86c20b041027d0566bb79eb55ad894aa0a7ff53ac689",
       "mobileFile": "mobile/leo.webp",
-      "mobileSha256": "3afed0c6d1787af9eb49ed6adc7793c1595e822f52f50a510d19fbf482034632"
+      "mobileSha256": "3afed0c6d1787af9eb49ed6adc7793c1595e822f52f50a510d19fbf482034632",
+      "adjustment": {
+        "scale": 0.7119726831253381,
+        "rotationDeg": 4.784557465832677,
+        "offsetX": -0.4451818419481483,
+        "offsetY": 2.757714903877912,
+        "flipX": false
+      }
     },
     {
       "jp": "おとめ座",
@@ -1249,7 +1270,14 @@
       "file": "pegasus.webp",
       "sha256": "5da1feafd6bd384d746934d79a5726e84e4db7e32c8fb534c2191aaee2ef6877",
       "mobileFile": "mobile/pegasus.webp",
-      "mobileSha256": "afdcadcd433b88acb6de83d1719d264d123fdab462a8462cc85e02e11db8a312"
+      "mobileSha256": "afdcadcd433b88acb6de83d1719d264d123fdab462a8462cc85e02e11db8a312",
+      "adjustment": {
+        "scale": 1.000418055691099,
+        "rotationDeg": -16.76334798439848,
+        "offsetX": 5.990287463793315,
+        "offsetY": 0.6332043043152008,
+        "flipX": false
+      }
     },
     {
       "jp": "アンドロメダ座",
@@ -1297,7 +1325,14 @@
       "file": "andromeda.webp",
       "sha256": "16e7fe0fde8add30161ef131a20626f44a571b01be8dd60cabde0716d3fb9e09",
       "mobileFile": "mobile/andromeda.webp",
-      "mobileSha256": "1f675a227daba1873ac87fd434ea76c31eafb4f9d25f605955d30748aaec6b48"
+      "mobileSha256": "1f675a227daba1873ac87fd434ea76c31eafb4f9d25f605955d30748aaec6b48",
+      "adjustment": {
+        "scale": 1.1107968640888217,
+        "rotationDeg": -6.665642331469371,
+        "offsetX": 0.5940402613718461,
+        "offsetY": -0.30139090578484584,
+        "flipX": true
+      }
     },
     {
       "jp": "うお座",
