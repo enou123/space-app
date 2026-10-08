@@ -12,12 +12,13 @@ for(const profile of (process.env.SPACE_APP_TEST_PROFILE?[process.env.SPACE_APP_
  await p.addInitScript(({epoch,raw,live})=>{if(!live){const start=performance.now();Date.now=()=>epoch+10000+performance.now()-start;localStorage.setItem('space-app.iss.omm.v1',JSON.stringify(raw));}localStorage.setItem('ssm_lite','1');},{epoch,raw,live});
  await p.route(url,r=>r.fulfill({contentType:'text/html',body:source}));if(!live){await p.route('https://raw.githubusercontent.com/enou123/space-app/iss-data/latest.json',r=>r.fulfill({json:raw}));await p.route('https://celestrak.org/**',r=>r.abort());}
  p.setDefaultTimeout(60000);await p.goto(url);await p.locator('#welcomeExplore').click();if(await p.locator('#panelToggle').getAttribute('aria-expanded')!=='true')await p.locator('#panelToggle').click();
+ assert.equal(await p.locator('#issRow').evaluate(e=>getComputedStyle(e).display),'none','ISS controls occupy no space before ISS is selected');
  const shot=async name=>{await p.evaluate(()=>window.__testFreeze=true);await p.waitForTimeout(150);await p.screenshot({path:'/tmp/iss-'+profile+'-'+name+'.png'});await p.evaluate(()=>__resumeFrames());};
  const state=()=>p.evaluate(()=>__issState());const wait=()=>p.waitForFunction(()=>window.__issState?.().finite&&__issState().error===0);
  await p.locator('[data-sc="1"]').click();await p.locator('[data-sp="0"]').click();const before=await state();
  // Pause only the software GPU while acquiring data; fetch/CORS and the clock stay real.
  if(live)await p.evaluate(()=>window.__testFreeze=true);
- await p.selectOption('#moonTravelSelect','iss');
+ await p.selectOption('#moonTravelSelect','iss');assert(await p.locator('#issRow').isVisible(),'ISS controls appear when ISS is selected');
  if(live){await p.waitForFunction(()=>!__issState().busy);if(!(await state()).epoch){console.log(profile,'initial acquisition failed',await p.locator('#issStatus').textContent());await p.locator('#issRefresh').click();await p.waitForFunction(()=>!__issState().busy);}await p.evaluate(()=>__resumeFrames());}
  try{await p.waitForFunction(()=>__issState().iss&&__issState().followISS);}catch(e){console.log(profile,'failed state',await state());throw e;}await wait();
  if(live)await p.waitForFunction(()=>__issState().source==='live');
@@ -31,7 +32,7 @@ for(const profile of (process.env.SPACE_APP_TEST_PROFILE?[process.env.SPACE_APP_
  await p.locator('#panelToggle').click();await p.locator('#issEarth').click();await p.waitForFunction(()=>{let s=__issState();return s.earthPixel&&Math.abs(s.earthPixel[0]-innerWidth/2)<2&&Math.abs(s.earthPixel[1]-innerHeight/2)<2});
  await p.locator('#panelToggle').click();await shot('horizon');await p.locator('#panelToggle').click();console.log(profile,'drag OK');await p.locator('#dateIn').fill('2018-01-01T09:00');await p.locator('#dateIn').press('Enter');await p.waitForFunction(()=>!__issState().iss);assert.equal((await state()).position,null);assert((await p.locator('#issStatus').textContent()).includes('ISSは非表示'));await p.locator('#issSync').click();await p.waitForFunction(()=>!!__issState().iss);
  await p.locator('[data-sc="0"]').click();assert.equal((await state()).scaleMode,2);
- await p.locator('#issLeave').click();s=await state();assert.equal(s.followISS,false);assert.equal(s.scaleMode,before.scaleMode);assert.equal(s.speed,before.speed);assert.equal(s.nowLock,before.nowLock);
+ await p.locator('#issLeave').click();s=await state();assert.equal(s.followISS,false);assert.equal(await p.locator('#issRow').evaluate(e=>getComputedStyle(e).display),'none','ISS controls collapse after leaving ISS');assert.equal(s.scaleMode,before.scaleMode);assert.equal(s.speed,before.speed);assert.equal(s.nowLock,before.nowLock);
  await p.selectOption('#moonTravelSelect','iss');await p.waitForFunction(()=>!!__issState().iss);await p.locator('[data-fo="5"]').click();assert.equal((await state()).followISS,false);assert.equal((await state()).scaleMode,1);await p.selectOption('#moonTravelSelect','5:0');await p.locator('#bSurface').click();assert((await state()).surfaceMode);await p.locator('#bOrbitView').click();assert.equal((await state()).scaleMode,1);
  assert.equal(errors.length,0,errors.join('\n'));assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  results.push({profile,distanceKm:distance,altitudeKm:moving.iss.altitude,speedKmS:moving.iss.speed,movementKmS,source:moving.source,errors,restoration:true,staleHidden:true,ground:false});await p.close();

@@ -1,3 +1,5 @@
+ISS未選択時にも操作欄が表示されるCSS不具合を修正。条件・検証結果は [panel-visibility.md](panel-visibility.md) を参照。
+
 # 現在の公開状態
 
 mainへの統合・GitHub Pages公開が完了。最新結果・スナップショット404の解消・CelesTrakの一時IP遮断・未検証項目は [publication-2026-10-08.md](publication-2026-10-08.md) を参照。以下は公開前時点の検証引き継ぎ。

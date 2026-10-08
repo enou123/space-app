@@ -1,0 +1,104 @@
+[
+  {
+    "profile": "PC",
+    "initial": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": ""
+    },
+    "active": {
+      "display": "flex",
+      "height": 148,
+      "planetDisplay": "none",
+      "selected": "iss"
+    },
+    "leave": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": ""
+    },
+    "otherMoon": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": "5:0"
+    },
+    "otherPlanet": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": ""
+    },
+    "errors": []
+  },
+  {
+    "profile": "portrait",
+    "initial": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": ""
+    },
+    "active": {
+      "display": "flex",
+      "height": 206.5,
+      "planetDisplay": "none",
+      "selected": "iss"
+    },
+    "leave": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": ""
+    },
+    "otherMoon": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": "5:0"
+    },
+    "otherPlanet": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": ""
+    },
+    "errors": []
+  },
+  {
+    "profile": "landscape",
+    "initial": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": ""
+    },
+    "active": {
+      "display": "flex",
+      "height": 103.75,
+      "planetDisplay": "none",
+      "selected": "iss"
+    },
+    "leave": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": ""
+    },
+    "otherMoon": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": "5:0"
+    },
+    "otherPlanet": {
+      "display": "none",
+      "height": 0,
+      "planetDisplay": "flex",
+      "selected": ""
+    },
+    "errors": []
+  }
+]
