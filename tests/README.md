@@ -1,5 +1,16 @@
 # 天体ショーの検証
 
+## ISSと地球の高精細表示
+
+```
+node --test tests/iss-orbit.test.cjs tests/earth-texture.test.cjs
+node tests/iss.browser.cjs
+node tests/earth-texture.browser.cjs
+node tests/iss-geometry.browser.cjs
+```
+
+テスト専用の2019年のISS OMMと別実装SGP4参照値を使います。過去データは公開アプリの既定データではありません。ブラウザの時計と通信を再現し、PC／iPhone相当の縦横画面で地球との相対距離、実時間移動、視点切替、地面の非表示、操作、期限切れ、縮尺・日時・速度の復元を検証します。4096／8192画像の実読込、端末制限、標準画像への復帰も確認します。画像と結果は `/tmp/iss-*` と `/tmp/earth-*` へ保存します。撮影の間だけテスト側でフレーム再生を止め、SwiftShaderの描画待ちを減らします。
+
 依存ライブラリなしの幾何テスト:
 
 ```sh

@@ -414,6 +414,7 @@
   <div class="row sep" id="rowShow"><span class="lab">表示</span><div class="btns"><button id="bOrbit" class="on">軌道</button><button id="bLabel" class="on">名称</button><button id="bMoon" class="on">衛星名</button><button id="bMoonOrbit" class="on">衛星軌道</button><button id="bConst">星座線</button><button id="bConstArt" aria-pressed="false" aria-controls="rowConstArt" title="34星座のイラストを星の位置に重ねます">星座イラスト</button><button id="bAster">星群（大三角など）</button><button id="bGrid">黄道・天の赤道</button><button id="bTrail">探査機の航跡</button><button id="bTrailHistory" title="最近の航跡と長期経路を切り替えます。カッシーニの土星周回は重なりを避けるため直近だけ表示します">航跡：最近</button><button id="bMW" class="on">天の川</button><button id="bAur" class="on">オーロラ</button><button id="bMeteor" class="on" title="地表から空を見ているとき、その日に活動している流星群の流星を流す">流星群</button><button id="bSpin" title="地球以外の惑星と太陽の自転の速さ（地球は常に実際の時刻に同期）">自転：見やすい速さ</button></div></div>
   <div class="row" id="rowConstArt" style="display:none"><label class="lab" for="constArtOpacity">絵の濃さ</label><div class="btns"><input id="constArtOpacity" type="range" min="10" max="100" step="5" value="40" style="width:150px"><span id="constArtOpacityVal" class="val">40%</span><a href="tools/constellation-calibrator.html" target="_blank" rel="noopener" style="color:#a8cfff">配置を調整 ↗</a></div></div>
   <div class="row"><span class="lab">天体</span><div class="btns"><button id="bBelt" class="on">小惑星帯</button><button id="bKuiper" class="on">カイパー帯</button><button id="bOortShow" class="on">オールト雲</button><button id="bProbe" class="on">探査機</button><button id="bStars" class="on">近傍恒星</button><button id="bGlob" class="on">球状星団</button><button id="bGalaxy" class="on">銀河系</button><button id="bHalo" class="on">ダークマター</button><button id="bLocal" class="on">局所銀河群</button></div></div>
+  <div class="row"><label class="lab" for="earthQuality">地球の画像</label><div class="btns"><select id="earthQuality"><option value="auto">自動</option><option value="2048">標準（2048px）</option><option value="4096">精細（4096px）</option><option value="8192">高精細（8192px）</option></select><span class="hint" id="earthQualityNote">標準画像を使用</span></div></div>
   <div class="row sep"><span class="lab">動作</span><div class="btns"><button id="bLite">軽量モード</button><span id="liteNote" class="val" style="color:#ffc98a;"></span></div></div>
 </div>
 <div id="fallback"><div><h2 style="font-weight:400;">WebGL が利用できません</h2>
@@ -422,6 +423,7 @@
 <script src="assets/celestial-physics.js?v=4741d5f3970f"></script>
 <script src="assets/vendor/satellite.min.js"></script>
 <script src="assets/iss-orbit.js"></script>
+<script src="assets/earth-texture.js"></script>
 <script>
 "use strict";
 (function () {
@@ -601,6 +603,7 @@
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idx),gl.STATIC_DRAW); return o; }
   // 近寄ったときに輪郭が角張らないよう、惑星用の球は分割を細かくする
   const SPH=makeSphere(96,64), SPH_LO=makeSphere(40,28), SPH_HALO=makeSphere(48,32);
+  let earthNearSphere=null;
 
   let scaleMode=0, scaleBlend=0;
   const AU_UNIT=6.0;
@@ -1076,7 +1079,8 @@
   earthImage.onerror=()=>{ canvas.dataset.earthMap="fallback"; };
   earthImage.src=EARTH_MAP_PNG;
   // NASA Blue Marble のカラー画像。読み込み失敗時は従来の地図描画を使う。
-  const earthColor=gl.createTexture(); let earthColorReady=0;
+  let earthColor=gl.createTexture(),earthColorReady=0;
+  const earthBaseTexture=earthColor;let earthBaseWidth=0,earthTextureManager=null,earthQuality="auto";
   gl.bindTexture(gl.TEXTURE_2D,earthColor);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,1,1,0,gl.RGB,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0]));
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
@@ -1091,14 +1095,14 @@
     let src=earthColorImage;
     if(max<earthColorImage.width){ src=document.createElement("canvas"); src.width=max; src.height=max/2;
       src.getContext("2d").drawImage(earthColorImage,0,0,src.width,src.height); }
-    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,earthColor);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,earthBaseTexture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
     gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,src);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
     gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
     const aniso=gl.getExtension("EXT_texture_filter_anisotropic")||gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
     if(aniso) gl.texParameterf(gl.TEXTURE_2D,aniso.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(4,gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
-    gl.activeTexture(gl.TEXTURE0); earthColorReady=1; canvas.dataset.earthColor="ready";
+    gl.activeTexture(gl.TEXTURE0); earthBaseWidth=src.width;earthColorReady=1; canvas.dataset.earthColor="ready";
     }catch(e){ gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false); gl.activeTexture(gl.TEXTURE0); canvas.dataset.earthColor="fallback"; }
   };
   earthColorImage.onerror=()=>{ canvas.dataset.earthColor="fallback"; };
@@ -2775,6 +2779,16 @@
     if(save){ try{ localStorage.setItem("ssm_lite",lite?"1":"0"); }catch(e){} } resize(); if(showConstArt) loadConstellationArt(); }
   $("bLite").onclick=()=>{ lite=!lite; applyLite(true); };
   applyLite(false);
+  function updateEarthQuality(force=false){
+    if(!earthColorReady||!earthTextureManager)return;
+    const cap={maxTextureSize:gl.getParameter(gl.MAX_TEXTURE_SIZE),lite,mobile:/iPhone|iPad|Android/.test(navigator.userAgent),memory:navigator.deviceMemory||4,cores:navigator.hardwareConcurrency||4};
+    const near=followISS||(followIdx===2&&scaleMode===2&&cam.d<BODIES[2].R*15),width=EarthTexture.resolution(earthQuality,cap,near);
+    earthTextureManager.select(width,force);
+    const m=earthTextureManager;
+    $("earthQualityNote").textContent=(m.busy?"画像を読み込み中… ":"")+m.width+"px"+(m.failed?"／取得・描画に失敗したため標準画像を使用":"")+(earthQuality!=="auto"&&Number(earthQuality)>width?"／端末に合わせて解像度を制限":"")+"（NASA Blue Marble）";
+  }
+  earthTextureManager=new EarthTexture.Manager({gl,base:earthBaseTexture,getBaseWidth:()=>earthBaseWidth,onChange:()=>{earthColor=earthTextureManager.texture;canvas.dataset.earthResolution=String(earthTextureManager.width);updateEarthQuality();}});
+  $("earthQuality").onchange=e=>{earthQuality=e.target.value;updateEarthQuality(true);};
   function drawSphere(prog,geo){ useAttrs(prog,[["aPos",geo.bufPos,3]]); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,geo.idxBuf);
     gl.drawElements(gl.TRIANGLES,geo.count,gl.UNSIGNED_SHORT,0); }
   function project(vp,p){ const x=vp[0]*p[0]+vp[4]*p[1]+vp[8]*p[2]+vp[12], y=vp[1]*p[0]+vp[5]*p[1]+vp[9]*p[2]+vp[13],
@@ -3750,6 +3764,7 @@
     prevYT=years;
 
     updateAstro();
+    updateEarthQuality();
     if(followISS){
       issState=ISSOrbit.state(issStore.data,AST.ms);
       issPos=issState?v3add(bodyAt(BODIES[2],years,false),v3scale(ISSOrbit.worldOffset(issState.ecef,AST.ms,AST.rot),ISS_KM_UNIT)):null;
@@ -4327,7 +4342,7 @@
             gl.uniform3f(progBody.u.uSolM,AST.M[0],AST.M[1],AST.M[2]); gl.uniform1f(progBody.u.uSolRe,RE_KM);
             gl.uniform1f(progBody.u.uSolKu,(RS_KM-RM_KM)/g.Dsm); gl.uniform1f(progBody.u.uSolKp,(RS_KM+RM_KM)/g.Dsm); }
           if(showAur){ gl.uniform1f(progBody.u.uAur,storm?1.6:1.0); gl.uniform1f(progBody.u.uAurLat,(storm?50:67)*DEG); } }
-        if(!surfActive) drawSphere(progBody,followISS&&i===2?SPH:lite?SPH_LO:SPH); gl.uniform1f(progBody.u.uRingOn,0.0);
+        if(!surfActive) drawSphere(progBody,followISS&&i===2?(earthNearSphere||(earthNearSphere=makeSphere(192,128))):lite?SPH_LO:SPH); gl.uniform1f(progBody.u.uRingOn,0.0);
         const msEff=moonScaleFor(b);
         if(b.moons) for(let j=0;j<b.moons.length;j++){ const m=b.moons[j]; let D=m.Dbase*msEff, ma=m.ph+(years/m.P)*Math.PI*2, faceM; const tz=b.tiltMat;
           if(i===2&&AST){

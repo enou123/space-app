@@ -1,0 +1,25 @@
+[
+  {
+    "profile": "PC",
+    "optional": [
+      4096,
+      8192
+    ],
+    "gpuError": 0,
+    "mobileCap": true,
+    "failureFallback": true,
+    "liteFallback": true,
+    "errors": []
+  },
+  {
+    "profile": "iPhone",
+    "optional": [
+      4096
+    ],
+    "gpuError": 0,
+    "mobileCap": true,
+    "failureFallback": true,
+    "liteFallback": true,
+    "errors": []
+  }
+]

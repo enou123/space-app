@@ -18,7 +18,7 @@ const fs=require('fs'),path=require('path'),assert=require('assert/strict'),{chr
   await step(3);assert.equal((await state()).panelHidden,false);await p.waitForTimeout(5100);
   assert.equal((await state()).panelHidden,profile==='iPhone');
   if(profile==='iPhone'){await click('#panelToggle');await p.waitForTimeout(1000);assert.equal((await state()).panelHidden,false);}
-  await step(2);await p.locator('#panel').dispatchEvent('pointerdown');await p.waitForTimeout(5100);assert.equal((await state()).panelHidden,false,'Interaction keeps panel open');
+  await p.evaluate(()=>{__featureStep(2);document.querySelector('#panel').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));});await p.waitForTimeout(5100);assert.equal((await state()).panelHidden,false,'Interaction keeps panel open');
   // Every feature scene still runs without rendering errors.
   for(let i=0;i<14;i++){await step(i);const s=await state();assert(s.finite&&!s.error&&!errors.length,profile+' feature '+i);}
   await step(3);await p.evaluate(()=>document.querySelector('[data-stereo="cross"]').click());
