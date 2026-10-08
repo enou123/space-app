@@ -1,0 +1,42 @@
+name: Refresh ISS orbital elements
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/refresh-iss.yml
+      - scripts/refresh-iss.cjs
+      - assets/iss-orbit.js
+permissions:
+  contents: write
+concurrency:
+  group: iss-orbital-elements
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch and validate NORAD 25544
+        run: node scripts/refresh-iss.cjs /tmp/iss-latest.json
+      - name: Publish static snapshot without changing application branch
+        shell: bash
+        run: |
+          if git fetch origin iss-data; then
+            git switch -C iss-data origin/iss-data
+          else
+            git switch --orphan iss-data
+          fi
+          cp /tmp/iss-latest.json latest.json
+          git add latest.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Refresh CelesTrak ISS orbital elements'
+          git push origin HEAD:iss-data

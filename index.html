@@ -23,6 +23,7 @@
   #title p{ margin:.7em 0 0; font-size:clamp(9px,.95vw,11.5px);
     letter-spacing:.12em; color:#8fa9cc; max-width:44vw; line-height:1.7; }
   body.surface #title{ display:none; }
+  #issRow[hidden], #rowPV[hidden]{display:none;}
   body.intro #title p{ display:none; }
   body.intro #clock{ display:none; }
   #welcome{ position:fixed; z-index:18; left:3.4vw; top:20vh; width:min(350px,40vw);
@@ -409,6 +410,7 @@
   <div class="row sep" id="rowSpeed"><span class="lab">観察用</span><div class="btns"><button data-sp="0.0000011408">実時間</button><button data-sp="0.000821">1時間＝5秒</button><button data-sp="0.009856">1日＝10秒</button></div></div>
   <div class="row"><span class="lab">低速</span><div class="btns"><button data-sp="0">停止</button><button data-sp="0.0125">×1/80</button><button data-sp="0.025">×1/40</button><button data-sp="0.05">×1/20</button><button data-sp="0.1">×1/10</button><button data-sp="0.25">×1/4</button><button data-sp="0.5">×1/2</button></div></div>
   <div class="row"><span class="lab">標準以上</span><div class="btns"><button data-sp="1" class="on">標準</button><button data-sp="4">×4</button><button data-sp="16">×16</button><button data-sp="60">×60</button><button data-sp="600">×600</button></div></div>
+  <div class="row" id="issRow" hidden><span class="lab">ISSの視点</span><div class="btns"><button id="issOrbit" class="on">ISSの周りから見る</button><button id="issSky">ISSから空を見る</button><button id="issEarth">地球を中央へ</button><button id="issSync">現在時刻に同期</button><button id="issRefresh">軌道要素を更新</button><button id="issMarker" class="on" aria-pressed="true">位置マーカー</button><button id="issLeave">元の設定へ戻る</button><span id="issStatus" class="hint" role="status" aria-live="off" style="flex-basis:100%"></span></div></div>
   <div class="row sep" id="rowShow"><span class="lab">表示</span><div class="btns"><button id="bOrbit" class="on">軌道</button><button id="bLabel" class="on">名称</button><button id="bMoon" class="on">衛星名</button><button id="bMoonOrbit" class="on">衛星軌道</button><button id="bConst">星座線</button><button id="bConstArt" aria-pressed="false" aria-controls="rowConstArt" title="34星座のイラストを星の位置に重ねます">星座イラスト</button><button id="bAster">星群（大三角など）</button><button id="bGrid">黄道・天の赤道</button><button id="bTrail">探査機の航跡</button><button id="bTrailHistory" title="最近の航跡と長期経路を切り替えます。カッシーニの土星周回は重なりを避けるため直近だけ表示します">航跡：最近</button><button id="bMW" class="on">天の川</button><button id="bAur" class="on">オーロラ</button><button id="bMeteor" class="on" title="地表から空を見ているとき、その日に活動している流星群の流星を流す">流星群</button><button id="bSpin" title="地球以外の惑星と太陽の自転の速さ（地球は常に実際の時刻に同期）">自転：見やすい速さ</button></div></div>
   <div class="row" id="rowConstArt" style="display:none"><label class="lab" for="constArtOpacity">絵の濃さ</label><div class="btns"><input id="constArtOpacity" type="range" min="10" max="100" step="5" value="40" style="width:150px"><span id="constArtOpacityVal" class="val">40%</span><a href="tools/constellation-calibrator.html" target="_blank" rel="noopener" style="color:#a8cfff">配置を調整 ↗</a></div></div>
   <div class="row"><span class="lab">天体</span><div class="btns"><button id="bBelt" class="on">小惑星帯</button><button id="bKuiper" class="on">カイパー帯</button><button id="bOortShow" class="on">オールト雲</button><button id="bProbe" class="on">探査機</button><button id="bStars" class="on">近傍恒星</button><button id="bGlob" class="on">球状星団</button><button id="bGalaxy" class="on">銀河系</button><button id="bHalo" class="on">ダークマター</button><button id="bLocal" class="on">局所銀河群</button></div></div>
@@ -418,6 +420,8 @@
   <p style="color:#8fa9cc;">ブラウザのハードウェアアクセラレーションを有効にしてお試しください。</p></div></div>
 <script src="assets/constellations/placement.js?v=calibration-v2"></script>
 <script src="assets/celestial-physics.js?v=4741d5f3970f"></script>
+<script src="assets/vendor/satellite.min.js"></script>
+<script src="assets/iss-orbit.js"></script>
 <script>
 "use strict";
 (function () {
@@ -2137,6 +2141,9 @@
   const spinIsReal=(day)=>!(tourActive||pt.on)&&(speed<=0||spinSecPerRot(day)>=0.8);
   const spinAngle=(day,real)=>-(years*YEAR_DAYS/day)*Math.PI*2*(real?1.0:0.02);
   let surfaceMode=false,surfLat=MATSU_LAT,surfYaw=0.6,surfPitch=0.30,surfYawT=0.6,surfPitchT=0.30;
+  let followISS=false,issSky=false,issSaved=null,issState=null,issPos=null,issMarker=true,issCentered=true;
+  const ISS_KM_UNIT=AU_UNIT/149597870.7;
+  let issStore=null;
   let satelliteSurfaceScale=null;
   let years=yearsSinceJ2000(Date.now()), tourActive=false;
   const FOV_SURF_DEG=180/2.6;
@@ -2168,6 +2175,7 @@
   canvas.addEventListener("auxclick",e=>e.preventDefault());
   canvas.addEventListener("contextmenu",e=>e.preventDefault());
   function panCamera(dx,dy){
+    if(followISS){ if(issSky)return; leaveISS(); }
     if(followIdx>=0||followMoon||followProbe>=0||followStar>=0||starFlight){
       // 自由視点へ移るときも、現在見ている場所を中心として保つ。
       pan[0]=focus[0]; pan[1]=focus[1]; pan[2]=focus[2];
@@ -2183,18 +2191,21 @@
     if(!(e.buttons&7)){ endDrag(); return; }
     if(Math.hypot(e.clientX-downX,e.clientY-downY)>4) dragMoved=true;
     const dx=e.clientX-lx,dy=e.clientY-ly;
-    if(mode===1&&surfaceMode){ aimTarget=null; if(trackOn){ trackOn=false; updateTrackUI(); } const k=surfFov/FOV_SURF_DEG; surfYawT-=dx*0.004*k; surfPitchT=Math.max(-0.35,Math.min(1.5,surfPitchT+dy*0.003*k)); }
+    if(mode===1&&followISS){ issCentered=false; cam.tth+=dx*0.005; cam.tph=Math.max(0.001,Math.min(Math.PI-0.001,cam.tph-dy*0.004)); }
+    else if(mode===1&&surfaceMode){ aimTarget=null; if(trackOn){ trackOn=false; updateTrackUI(); } const k=surfFov/FOV_SURF_DEG; surfYawT-=dx*0.004*k; surfPitchT=Math.max(-0.35,Math.min(1.5,surfPitchT+dy*0.003*k)); }
     else if(mode===1){ cam.tth+=dx*0.005; cam.tph=Math.max(0.05,Math.min(Math.PI-0.05,cam.tph-dy*0.004)); }
     else if(!surfaceMode) panCamera(dx,dy);
     lx=e.clientX; ly=e.clientY; });
   canvas.addEventListener("wheel",e=>{ e.preventDefault(); if(tourActive||lt.on) return;
+    if(followISS&&issSky){ surfFovT=Math.max(10,Math.min(100,surfFovT*(1+e.deltaY*0.0016))); return; }
     if(surfaceMode&&(followIdx>=0||followMoon)){ surfFovT=Math.max(0.5,Math.min(100,surfFovT*(1+e.deltaY*0.0016))); return; }
     if(pt.on&&pt.only>=0){ pt.zm=Math.max(0.05,Math.min(20,(pt.zm||1)*(1+e.deltaY*0.0016))); return; }
     let zmax=showLocal?GAL_SUN_U*300:showHalo?GAL_SUN_U*32:(showGalaxy?GAL_SUN_U*4.5:OORT_OUTER_U*2.2);
     if(scaleMode>0) zmax=AU_UNIT*1200;   // 実距離系は太陽系の範囲（セドナの遠日点 約940 AU）まで
     // 寄れる下限：探査機は模型の大きさ、完全実縮尺は天体の大きさに合わせる
     let zmin=0.15;
-    if(followStar>=0) zmin=Math.max(1,VISIT_STARS[followStar].r*0.32);
+    if(followISS) zmin=ISS_KM_UNIT*0.08;
+    else if(followStar>=0) zmin=Math.max(1,VISIT_STARS[followStar].r*0.32);
     else if(followMoon){ const m=BODIES[followMoon.body].moons[followMoon.moon]; zmin=Math.max(0.0004,m.R*1.25); }
     else if(followProbe>=0) zmin=PROBE_S*2.2;
     else if(scaleMode===2) zmin=0.0004;
@@ -2334,7 +2345,7 @@
     document.querySelectorAll("[data-sc]").forEach(x=>x.classList.remove("on")); b.classList.add("on");
     if(followIdx>=0||followMoon||followProbe>=0) setTimeout(refocus,260);
     else { cam.td=scaleMode===0?78:(scaleMode===1?AU_UNIT*34:AU_UNIT*3.2); surfaceMode=false; updateViewUI(); pan[0]=pan[1]=pan[2]=0; } }; });
-  function resetView(){ cancelCurrentLocation(); surfOverride=null; followIdx=-1; followMoon=null; followProbe=-1; followStar=-1; starLookSun=false; starFlight=null; setFollowUI(); surfaceMode=false; updateViewUI(); pan[0]=pan[1]=pan[2]=0; hideInfo(); }
+  function resetView(){ leaveISS(); cancelCurrentLocation(); surfOverride=null; followIdx=-1; followMoon=null; followProbe=-1; followStar=-1; starLookSun=false; starFlight=null; setFollowUI(); surfaceMode=false; updateViewUI(); pan[0]=pan[1]=pan[2]=0; hideInfo(); }
   function setScale0(){ scaleMode=0; scaleBlend=0; rebuildScale();
     document.querySelectorAll("[data-sc]").forEach(x=>x.classList.toggle("on",x.dataset.sc==="0")); }
   $("bTop").onclick=()=>{ resetView(); cam.tph=0.09; cam.td=118; };
@@ -2375,15 +2386,17 @@
   BODIES.forEach((b,bi)=>{ if(!b.moons||!b.moons.length) return; const group=document.createElement("optgroup"); group.label=b.jp;
     b.moons.map((m,mi)=>({m,mi})).sort((a,c)=>a.m.d-c.m.d).forEach(({m,mi})=>{ const option=document.createElement("option"); option.value=bi+":"+mi; option.textContent=m.jp; group.appendChild(option); });
     $("moonTravelSelect").appendChild(group); });
+  {const option=document.createElement("option");option.value="iss";option.textContent="国際宇宙ステーション（ISS）";$("moonTravelSelect").appendChild(option);}
   VISIT_STARS.forEach((s,i)=>{ const option=document.createElement("option"); option.value=String(i);
     option.textContent=s.jp+(s.groupType==="cluster"?"（星団）":s.groupType==="multiple"?"（三重星系）":""); $("starTravelSelect").appendChild(option); });
   PROBES.forEach((p,i)=>{ const btn=document.createElement("button"); btn.textContent=p.jp; btn.className="probe"; btn.dataset.fp=String(i); $("probeRow").appendChild(btn); });
   function setFollowUI(){
+    if(followISS&&(followIdx>=0||followMoon||followProbe>=0||followStar>=0))leaveISS();
     if(followIdx>=0||followMoon||followProbe>=0){ followStar=-1; starLookSun=false; starFlight=null; }
     document.querySelectorAll("[data-fo]").forEach(x=>{ const v=parseInt(x.dataset.fo,10);
       x.classList.toggle("on", v===followIdx && followProbe<0 && !followMoon && followStar<0); });
     document.querySelectorAll("[data-fp]").forEach(x=>{ x.classList.toggle("on",parseInt(x.dataset.fp,10)===followProbe); });
-    $("moonTravelSelect").value=followMoon?followMoon.body+":"+followMoon.moon:"";
+    $("moonTravelSelect").value=followISS?"iss":followMoon?followMoon.body+":"+followMoon.moon:"";
     $("starTravelSelect").value=followStar>=0?String(followStar):"";
     document.body.classList.toggle("starSolar",followStar>=0&&starLookSun); }
   function updateStarNote(){ if(followStar>=0){ const s=VISIT_STARS[followStar];
@@ -2404,7 +2417,7 @@
     const groupHint=s.groupType==="multiple"?" ポラリスAa・Ab・Bを表示します（伴星の間隔は模式化）。":"";
     toast("<b>"+s.jp+"</b>　約 "+s.ly+" 光年先。色はスペクトル型、大きさは太陽半径との比を参考にした拡大表示です。"+groupHint,6);
   };
-  $("moonTravelSelect").onchange=e=>{ if(e.target.value==="") return; const [body,moon]=e.target.value.split(":").map(Number),m=BODIES[body].moons[moon];
+  $("moonTravelSelect").onchange=e=>{ if(e.target.value==="") return; if(e.target.value==="iss"){ enterISS(); return; } leaveISS(); const [body,moon]=e.target.value.split(":").map(Number),m=BODIES[body].moons[moon];
     if(tourActive) endTour(); if(lt.on) endLight(); if(pt.on) endProbeTour(true);
     surfaceMode=false; updateViewUI();
     followIdx=-1; followMoon={body,moon}; followProbe=-1; followStar=-1; starLookSun=false; starFlight=null;
@@ -2430,6 +2443,7 @@
       document.querySelectorAll("[data-ms]").forEach(x=>x.classList.toggle("on",+x.dataset.ms===moonScale));
       if(followMoon){ refocus(); cam.d=cam.td; }
     }
+    $("issRow").hidden=!followISS; $("rowPV").hidden=followISS;
     document.body.classList.toggle("surface",surfaceMode);
     $("bOrbitView").classList.toggle("on",!surfaceMode); $("bSurface").classList.toggle("on",surfaceMode);
     $("rowPV").querySelector(".lab").textContent=followMoon?"衛星の視点":"惑星の視点";
@@ -3605,6 +3619,93 @@
     gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,stereoTargets.views[1].tex);gl.uniform1i(stereoComposite.u.uRight,1);
     gl.drawArrays(gl.TRIANGLES,0,6);gl.activeTexture(gl.TEXTURE0);
   }
+
+  function leaveISS(){
+    if(!followISS)return;
+    followISS=false;issSky=false;issState=null;issPos=null;
+    const saved=issSaved;issSaved=null;
+    if(saved){scaleMode=scaleBlend=saved.scale;moonScale=moonScaleCur=saved.moons;years=saved.years;nowLock=saved.nowLock;setSpeed(saved.speed);rebuildScale();
+      document.querySelectorAll("[data-sc]").forEach(x=>x.classList.toggle("on",+x.dataset.sc===scaleMode));
+      document.querySelectorAll("[data-ms]").forEach(x=>x.classList.toggle("on",+x.dataset.ms===moonScale));setDateInput(dateFromYears(years));}
+    $("issRow").hidden=true;$("rowPV").hidden=false;issLabel.style.opacity=0;
+  }
+  function syncISS(){years=yearsSinceJ2000(Date.now());nowLock=true;setSpeed(REAL_SPEED);setDateInput(new Date());}
+  function aimISSEarth(){issCentered=true;surfFov=surfFovT=FOV_SURF_DEG;}
+  function enterISS(){
+    if(followISS)return;
+    if(guideOn)endGuide();if(tourActive)endTour();if(lt.on)endLight();if(pt.on)endProbeTour(true);
+    surfaceMode=false;updateViewUI();
+    issSaved={scale:scaleMode,moons:moonScale,years,speed,nowLock};
+    followIdx=-1;followMoon=null;followProbe=-1;followStar=-1;starFlight=null;starLookSun=false;followISS=true;issSky=false;
+    scaleMode=scaleBlend=2;moonScale=moonScaleCur=1;rebuildScale();syncISS();pan.fill(0);aimISSEarth();
+    cam.d=cam.td=ISS_KM_UNIT*.35;
+    document.querySelectorAll("[data-sc]").forEach(x=>x.classList.toggle("on",x.dataset.sc==="2"));
+    document.querySelectorAll("[data-ms]").forEach(x=>x.classList.toggle("on",x.dataset.ms==="1"));
+    $("issOrbit").classList.add("on");$("issSky").classList.remove("on");setFollowUI();updateViewUI();issStore.refresh();updateISSStatus();
+  }
+  function updateISSStatus(){
+    if(!followISS||!issStore)return;
+    const d=issStore.data,s=issState;
+    const source={live:"CelesTrak",snapshot:"公開サイトのキャッシュ",cache:"端末のキャッシュ",none:"未取得"}[issStore.source];
+    const message=(d?"取得："+fmtJST(Date.parse(d.fetchedAt))+"／要素基準："+fmtJST(d.epoch)+"（"+source+"）":"軌道要素は未取得です。")+
+      (issStore.busy?" 更新中…":issStore.failed?" 最新取得に失敗。利用可能なキャッシュを使用します。":"")+
+      (s?" 高度 "+s.altitude.toFixed(1)+" km／速度 "+s.speed.toFixed(2)+" km/s／緯度 "+s.latitude.toFixed(2)+"° 経度 "+s.longitude.toFixed(2)+"°":" ISSは非表示：有効な要素がないか、要素基準から±3日を超えています。")+
+      " SGP4による推定位置。軌道変更・大気抵抗により誤差が増え、±3日以内も精度保証はありません。"+
+      (s&&Math.abs(s.ageDays)>1?" 要素基準から1日以上：誤差の増大に注意。":"")+
+      (issSky?" カメラ方向は観察用の近似です（実際の姿勢ではありません）。":" ISS模型は実寸約109×73 mの模式図です。位置マーカーは大きさを表しません。");
+    if($("issStatus").textContent!==message)$("issStatus").textContent=message;
+    canvas.dataset.iss=s?'visible':'unavailable';
+  }
+  try{issStore=new ISSOrbit.Store({onChange:updateISSStatus});}catch(e){issStore=new ISSOrbit.Store({storage:null,onChange:updateISSStatus});}
+  const issLabel=addLabel("ISS","","moon");
+  $("issOrbit").onclick=()=>{issSky=false;aimISSEarth();$("issOrbit").classList.add("on");$("issSky").classList.remove("on");};
+  $("issSky").onclick=()=>{issSky=true;aimISSEarth();$("issSky").classList.add("on");$("issOrbit").classList.remove("on");};
+  $("issEarth").onclick=aimISSEarth;$("issSync").onclick=syncISS;$("issRefresh").onclick=()=>issStore.refresh(true);
+  $("issMarker").onclick=e=>{issMarker=!issMarker;e.currentTarget.classList.toggle("on",issMarker);e.currentTarget.setAttribute("aria-pressed",String(issMarker));};
+  $("issLeave").onclick=()=>{leaveISS();followIdx=2;setFollowUI();updateViewUI();focusOn(2);};
+  const leaveISSForControl=e=>{
+    if(!followISS)return;
+    const t=e.target.closest('[data-fo],[data-fp],#starTravelSelect,#moonTravelSelect,#bNow,#bTop,#bOort,#bStarView,#bGalaxyView,#bLocalView,#bSurface,#bTour,#bGuide,#bSpect,#bSpectSpace,#bSpectAuto,#celestialShowSelect,#bLightF,#bLightR,#ptRow button,#bNowSky,#bNowSkyKumamoto,#bNowSkyHere,#bNowSkyAtlanta,#bSolPrev,#bSolNext,#bLunPrev,#bLunNext');
+    if(t&&!(t.id==='moonTravelSelect'&&t.value==='iss'))leaveISS();
+    // ISS always uses true scale; time edits remain possible within the validity window.
+    if(e.target.closest('[data-sc],[data-ms]')){e.preventDefault();e.stopImmediatePropagation();toast("ISS観察中は完全実縮尺を使用します。元の設定へ戻ると変更できます。",4);}
+  };
+  $('panel').addEventListener('click',leaveISSForControl,true);$('panel').addEventListener('change',leaveISSForControl,true);
+  const ISS_PARTS=[{t:[0,0,0],s:[109,1.5,1.5],c:[.7,.7,.75]},{t:[0,0,0],s:[4.2,4.2,65],c:[.85,.85,.9]},
+    ...[-42,-28,28,42].flatMap(x=>[-1,1].map(z=>({t:[x,0,z*20],s:[10,.2,32],c:[.16,.23,.48]})))];
+  const issOrbitBuf=gl.createBuffer();let issOrbitPoints=[],issOrbitMs=-Infinity,issOrbitData=null;
+  function drawISSOrbit(proj,viewR,eye){
+    if(!followISS||!issState||!showMoonOrbit)return;
+    if(Math.abs(AST.ms-issOrbitMs)>30000||issOrbitData!==issStore.data){
+      issOrbitPoints=[];issOrbitMs=AST.ms;issOrbitData=issStore.data;
+      const period=86400000/Number(issStore.data.elements.MEAN_MOTION);
+      for(let j=0;j<=128;j++){
+        const ms=AST.ms+(j/128-.5)*period,s=ISSOrbit.state(issStore.data,ms);
+        if(!s){issOrbitPoints=[];break;}
+        issOrbitPoints.push(ISSOrbit.worldOffset(s.ecef,ms,AST.rot));
+      }
+    }
+    if(!issOrbitPoints.length)return;
+    const earth=bodyAt(BODIES[2],years,false),points=new Float32Array(issOrbitPoints.length*4);
+    issOrbitPoints.forEach((p,j)=>{for(let k=0;k<3;k++)points[j*4+k]=earth[k]+p[k]*ISS_KM_UNIT-eye[k];points[j*4+3]=1;});
+    gl.bindBuffer(gl.ARRAY_BUFFER,issOrbitBuf);gl.bufferData(gl.ARRAY_BUFFER,points,gl.DYNAMIC_DRAW);
+    gl.useProgram(progTrail);useAttrs(progTrail,[["aP",issOrbitBuf,4]]);
+    gl.uniformMatrix4fv(progTrail.u.uProj,false,proj);gl.uniformMatrix4fv(progTrail.u.uView,false,viewR);
+    gl.uniform3f(progTrail.u.uColor,.4,.85,1);gl.uniform1f(progTrail.u.uAlpha,.45);gl.drawArrays(gl.LINE_STRIP,0,issOrbitPoints.length);
+  }
+  function drawISS(proj,viewR,eye,sunRel){
+    if(!followISS||!issPos||issSky||hiddenBehind(eye,issPos,null))return;
+    const pR=v3sub(issPos,eye),radial=v3norm(v3sub(issPos,bodyAt(BODIES[2],years,false)));
+    const velocityWorld=AST.rot([issState.velocity[0],-issState.velocity[1]*Math.sin(23.4392911*DEG)+issState.velocity[2]*Math.cos(23.4392911*DEG),issState.velocity[1]*Math.cos(23.4392911*DEG)+issState.velocity[2]*Math.sin(23.4392911*DEG)]);
+    const along=v3norm(v3sub(velocityWorld,v3scale(radial,v3dot(velocityWorld,radial)))),cross=v3norm(v3cross(radial,along));
+    const T=M4.mul(M4.trans(...pR),M4.basis(cross,radial,along)),K=ISS_KM_UNIT/1000;
+    gl.useProgram(progPart);gl.uniformMatrix4fv(progPart.u.uProj,false,proj);gl.uniformMatrix4fv(progPart.u.uView,false,viewR);
+    gl.uniform3f(progPart.u.uEye,0,0,0);gl.uniform3f(progPart.u.uSunRel,...sunRel);gl.uniform1f(progPart.u.uDim,sysDim);
+    for(const q of ISS_PARTS){const m=M4.mul(M4.mul(T,M4.trans(...q.t.map(v=>v*K))),M4.scale3(...q.s.map(v=>v*K*.5)));
+      gl.uniformMatrix4fv(progPart.u.uModel,false,m);gl.uniform3f(progPart.u.uCol,...q.c);gl.uniform1f(progPart.u.uKind,q.c[0]<.2?1:0);gl.uniform2f(progPart.u.uGrid,8,16);
+      const g=MESH_BOX;useAttrs(progPart,[["aPos",g.bp,3],["aNor",g.bn,3]]);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,g.ib);gl.drawElements(gl.TRIANGLES,g.n,gl.UNSIGNED_SHORT,0);}
+  }
+
   function frame(now,stereoPass=0){
     const dt=stereoPass===1?0:Math.max(0,Math.min((now-prev)/1000,0.05)); prev=now; wall+=dt; years+=dt*speed/YEAR_SEC; guideTick(Math.min((now-prevG)/1000,0.5)); prevG=now;
     if(stereoPass===0) stereoFxDt=dt;
@@ -3649,6 +3750,18 @@
     prevYT=years;
 
     updateAstro();
+    if(followISS){
+      issState=ISSOrbit.state(issStore.data,AST.ms);
+      issPos=issState?v3add(bodyAt(BODIES[2],years,false),v3scale(ISSOrbit.worldOffset(issState.ecef,AST.ms,AST.rot),ISS_KM_UNIT)):null;
+      issStore.refresh();
+      if(!issPos&&issSky)issCentered=true;
+      if(issPos){
+        const earth=bodyAt(BODIES[2],years,false),dir=v3norm(v3sub(issSky?earth:issPos,issSky?issPos:earth));
+        if(issCentered){cam.th=cam.tth=Math.atan2(dir[0],dir[2]);cam.ph=cam.tph=Math.acos(Math.max(-.999999,Math.min(.999999,dir[1])));}
+        for(let k=0;k<3;k++)focus[k]=issPos[k];
+      }
+      updateISSStatus();
+    }
     const cine=tourActive||lt.on||pt.on;
     // ---- 探査機の旅 ----
     if(pt.on){ let near=1e9; for(const t of pt.evs) near=Math.min(near,Math.abs(t-years));
@@ -3710,6 +3823,7 @@
             :"高速再生中のため、地球の自転は見やすい速さで表示しています（昼夜の境界は正確）"); } }
       if(fxInfo) mi+=(mi?"<br>":"")+fxInfo;
       if((constFade>0.35||asterFade>0.35)&&conEyeInfo>0.05) mi+=(mi?"<br>":"")+"星座は太陽から約 "+(conEyeInfo<10?conEyeInfo.toFixed(1):fmtNum(Math.round(conEyeInfo)))+" 光年の地点から見た形です";
+      if(followISS){const d=issStore.data;mi+=(mi?"<br>":"")+(d?"ISS要素基準："+fmtJST(d.epoch)+"／取得："+fmtJST(Date.parse(d.fetchedAt)):"ISS軌道要素：未取得")+"<br>SGP4の推定。要素基準から±3日を超える日時ではISSを非表示。"+(issState?" 高度 "+issState.altitude.toFixed(0)+" km／速度 "+issState.speed.toFixed(2)+" km/s":" 有効な位置はありません。")+(issSky?" カメラ方向は観察用の近似。":" 模型は実寸の模式図。");}
       $("moonInfo").innerHTML=mi;
       if(surfaceMode&&(followIdx===2||followMoon)){ $("latVal").textContent=fmtLat(obsLat); $("lonVal").textContent=fmtLon(obsLon); }
       if(surfaceMode&&!cine&&(followIdx>=0||followMoon)){ const a=surfSunAlt;
@@ -3717,6 +3831,7 @@
         const loc=(followIdx===2||followMoon)?"（"+(obsLat>=0?"北緯":"南緯")+Math.abs(obsLat).toFixed(1)+"° "+(obsLon>=0?"東経":"西経")+Math.abs(obsLon).toFixed(1)+"°）":"";
         const groundName=followMoon?BODIES[followMoon.body].moons[followMoon.moon].jp+"面":followIdx===2?"地球の地表":"地表";
         scaleNote.textContent=groundName+"視点"+loc+"　太陽高度 "+(a>=0?"+":"")+a.toFixed(1)+"°（"+ph+"）"+(trackOn?"　追尾中："+TRACK_JP[trackTarget]:"")+(surfFov<60?"　視野 "+(surfFov*2>=10?(surfFov*2).toFixed(0):(surfFov*2).toFixed(1))+"°":""); }
+      else if(followISS) scaleNote.textContent="ISS：完全実縮尺／"+(nowLock?"現在時刻に同期":speed===REAL_SPEED?"実時間":"指定時刻・速度")+(issSky?"／宇宙空間の観察点":"／実寸の模式模型");
       else if(followStar>=0) updateStarNote();
       else if(followMoon){ const m=BODIES[followMoon.body].moons[followMoon.moon]; scaleNote.textContent=m.jp+"（"+BODIES[followMoon.body].jp+"の衛星）を追尾中"; }
       else if(followProbe>=0) scaleNote.textContent="探査機の模型は見やすさのため大きく描いています（実物："+(PROBES[followProbe].note||"アンテナ直径 "+PROBES[followProbe].dish+" m")+"）";
@@ -3731,12 +3846,14 @@
           :"視野半径　約 "+(au<1000?au.toFixed(au<10?3:0):fmtNum(Math.round(au/100)*100))+" AU"; } }
 
     let base=[0,0,0];
-    if(followProbe>=0) base=PROBES[followProbe].pos;
+    if(followISS) base=issPos||bodyAt(BODIES[2],years,false);
+    else if(followProbe>=0) base=PROBES[followProbe].pos;
     else if(followMoon){ const m=BODIES[followMoon.body].moons[followMoon.moon]; if(m.pos) base=m.pos; }
     else if(followIdx>=0&&BODIES[followIdx].pos) base=BODIES[followIdx].pos;
     else if(followStar>=0) base=VISIT_STARS[followStar].pos;
     const ez=(followIdx>=0||followMoon||followProbe>=0||followStar>=0)?0.22:0.06;
-    if(!starFlight&&!gConst&&!gShow) for(let k=0;k<3;k++) focus[k]+=((base[k]+pan[k])-focus[k])*(stereoPass?0:ez);
+    if(followISS) for(let k=0;k<3;k++)focus[k]=base[k];
+    if(!followISS&&!starFlight&&!gConst&&!gShow) for(let k=0;k<3;k++) focus[k]+=((base[k]+pan[k])-focus[k])*(stereoPass?0:ez);
 
     const stereo=stereoMode!=="normal";
     const pair=stereoMode==="parallel"||stereoMode==="cross";
@@ -3745,7 +3862,13 @@
     if(gShow&&gShow.telescope)fov=gShow.telescope.fov;
     const surfaceTarget=followMoon?BODIES[followMoon.body].moons[followMoon.moon]:followIdx>=0?BODIES[followIdx]:null;
     const surfaceHost=followMoon?BODIES[followMoon.body]:null;
-    if(surfaceMode&&!cine&&surfaceTarget&&surfaceTarget.spinMat){
+    if(followISS&&issSky&&issPos){
+      eye=[...issPos];surfFov+=(surfFovT-surfFov)*(stereoPass?0:.12);fov=surfFov*DEG;
+      const dir=[Math.sin(cam.ph)*Math.sin(cam.th),Math.cos(cam.ph),Math.sin(cam.ph)*Math.cos(cam.th)];
+      lookAt=v3add(eye,v3scale(dir,ISS_KM_UNIT*6371));stereoDir=dir;stereoUp=[0,1,0];
+      proj=M4.perspective(fov,aspect,ISS_KM_UNIT*1,4000);
+      view=M4.mul(M4.flip,M4.lookAt(eye,lookAt,[0,1,0]));viewR=M4.mul(M4.flip,M4.lookAt([0,0,0],dir,[0,1,0]));
+    } else if(surfaceMode&&!cine&&surfaceTarget&&surfaceTarget.spinMat){
       surfActive=true; surfFov+=(surfFovT-surfFov)*(stereoPass?0:0.12); fov=surfFov*DEG;
       const b=surfaceTarget,mm=b.spinMat,la=obsLat*DEG,lo=obsLon*DEG,ux=Math.cos(la)*Math.cos(lo),uy=Math.sin(la),uz=Math.cos(la)*Math.sin(lo);
       let up=v3norm([mm[0]*ux+mm[4]*uy+mm[8]*uz,mm[1]*ux+mm[5]*uy+mm[9]*uz,mm[2]*ux+mm[6]*uy+mm[10]*uz]);
@@ -3799,11 +3922,12 @@
       view=M4.mul(M4.flip,M4.lookAt(eye,[eye[0]+dir[0],eye[1]+dir[1],eye[2]+dir[2]],up));
       viewR=M4.mul(M4.flip,M4.lookAt([0,0,0],dir,up));
     } else {
-      eye=[focus[0]+cam.d*Math.sin(cam.ph)*Math.sin(cam.th),focus[1]+cam.d*Math.cos(cam.ph),focus[2]+cam.d*Math.sin(cam.ph)*Math.cos(cam.th)];
+      const orbitD=followISS&&!issPos?BODIES[2].R*3:cam.d;
+      eye=[focus[0]+orbitD*Math.sin(cam.ph)*Math.sin(cam.th),focus[1]+orbitD*Math.cos(cam.ph),focus[2]+orbitD*Math.sin(cam.ph)*Math.cos(cam.th)];
       lookAt=starLookSun&&followStar>=0?v3sub(focus,v3scale(v3norm(VISIT_STARS[followStar].pos),cam.d*1.12)):focus;
       // Close Enceladus views need a larger near plane: otherwise Saturn front/back
       // triangles share depth values and flicker as the camera crosses the plume.
-      proj=M4.perspective(fov,aspect,gShow&&gShow.telescope?cam.d*0.5:starLookSun?Math.max(0.05,cam.d*0.002):cam.d*(gShow&&gShow.kind==='enceladus'?0.05:followProbe>=0?0.02:1.2e-4),
+      proj=M4.perspective(fov,aspect,followISS?ISS_KM_UNIT*1:gShow&&gShow.telescope?cam.d*0.5:starLookSun?Math.max(0.05,cam.d*0.002):cam.d*(gShow&&gShow.kind==='enceladus'?0.05:followProbe>=0?0.02:1.2e-4),
         starLookSun?Math.max(cam.d*40,Math.hypot(...eye)*1.2):Math.max(cam.d*40,4000));
       const showUp=gShow&&gShow.kind==='halley'?gShow.up:gShow&&gShow.kind==='enceladus'?v3scale([BODIES[5].tiltMat[4],BODIES[5].tiltMat[5],BODIES[5].tiltMat[6]],-1):[0,1,0];
       view=M4.mul(M4.flip,M4.lookAt(eye,lookAt,showUp));
@@ -4188,7 +4312,7 @@
         b.pos=toWorld(b.plane,b.A*(Math.cos(E)-b.ecc),b.B*Math.sin(E)); b.rAU=b.a*(1-b.ecc*Math.cos(E));
         let mat=M4.mul(M4.trans(b.pos[0],b.pos[1],b.pos[2]),b.tiltMat);
         let spinR;
-        if(i===2&&AST&&spinIsReal(b.day)){ spinR=earthBasis(AST.ms,AST.rot); earthSynced=true; }      // 地球：実際の時刻（GMST）に同期
+        if(i===2&&AST&&(followISS||spinIsReal(b.day))){ spinR=earthBasis(AST.ms,AST.rot); earthSynced=true; }      // 地球：実際の時刻（GMST）に同期
         else { const ang=spinAngle(b.day,i!==2&&spinReal&&spinIsReal(b.day)); spinR=M4.mul(b.tiltMat,M4.rotY(ang)); if(i===2) earthSynced=false; }
         mat=M4.mul(M4.trans(b.pos[0],b.pos[1],b.pos[2]),spinR); b.spinMat=mat;
         const bR=rel(b.pos); b.spinRel=M4.mul(M4.trans(bR[0],bR[1],bR[2]),spinR);
@@ -4203,7 +4327,7 @@
             gl.uniform3f(progBody.u.uSolM,AST.M[0],AST.M[1],AST.M[2]); gl.uniform1f(progBody.u.uSolRe,RE_KM);
             gl.uniform1f(progBody.u.uSolKu,(RS_KM-RM_KM)/g.Dsm); gl.uniform1f(progBody.u.uSolKp,(RS_KM+RM_KM)/g.Dsm); }
           if(showAur){ gl.uniform1f(progBody.u.uAur,storm?1.6:1.0); gl.uniform1f(progBody.u.uAurLat,(storm?50:67)*DEG); } }
-        if(!surfActive) drawSphere(progBody,lite?SPH_LO:SPH); gl.uniform1f(progBody.u.uRingOn,0.0);
+        if(!surfActive) drawSphere(progBody,followISS&&i===2?SPH:lite?SPH_LO:SPH); gl.uniform1f(progBody.u.uRingOn,0.0);
         const msEff=moonScaleFor(b);
         if(b.moons) for(let j=0;j<b.moons.length;j++){ const m=b.moons[j]; let D=m.Dbase*msEff, ma=m.ph+(years/m.P)*Math.PI*2, faceM; const tz=b.tiltMat;
           if(i===2&&AST){
@@ -4496,6 +4620,13 @@
       gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE); gl.depthMask(true);
       horizonCut={e:eye,u:surfUp}; }
 
+    if(followISS&&issPos){gl.enable(gl.DEPTH_TEST);gl.depthMask(false);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);drawISSOrbit(proj,viewR,eye);}
+    if(followISS&&issPos&&!issSky){
+      gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.disable(gl.BLEND);
+      const localProj=M4.perspective(fov,aspect,Math.max(ISS_KM_UNIT*.001,cam.d*.02),Math.max(cam.d*10,ISS_KM_UNIT*2));
+      drawISS(localProj,viewR,eye,v3scale(eye,-1));gl.enable(gl.BLEND);
+    }
+    place(issLabel,vp,issPos,followISS&&issPos&&!issSky&&issMarker&&showMoonLabel);
     /* ---- ラベル（「名称」「衛星名」ボタンに従う。ツアー中も表示）---- */
     const labelOK=showLabel&&(!gConst||gConst.ly<1)&&oortFade<0.55&&sysDim>0.5&&!starLookSun;
     for(let i=0;i<BODIES.length;i++){ const b=BODIES[i];
@@ -4503,7 +4634,7 @@
       if(surfActive){ place(b.el,vp,b.skyPt,labelOK&&i!==followIdx&&b.skyVis);
         if(b.moons) b.moons.forEach((m,j)=>{ if(i===2&&moonW) place(m.el,vp,v3add(eye,v3scale(moonW,skyR*0.49)),showMoonLabel&&surfFov>8); else m.el.style.opacity=0; });
         continue; }
-      place(b.el,vp,b.pos,labelOK&&!(gShow&&gShow.telescope)&&!hiddenBehind(eye,b.pos,b));
+      place(b.el,vp,b.pos,labelOK&&!(followISS&&i===2)&&!(gShow&&gShow.telescope)&&!hiddenBehind(eye,b.pos,b));
       const near=(followIdx===i)||(b.pos&&distE(eye,b.pos)<Math.min(26,b.R*120));
         if(b.moons) for(let j=0;j<b.moons.length;j++){ const m=b.moons[j];
         if(i===2&&surfActive&&moonW){ place(m.el,vp,v3add(eye,v3scale(moonW,skyR*0.49)),showMoonLabel&&surfFov>8); continue; }
