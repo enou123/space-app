@@ -4388,7 +4388,7 @@
           gl.uniformMatrix4fv(progShell.u.uModel,false,M4.mul(b.spinRel,M4.scale(b.R*1.045)));
           gl.uniform3f(progShell.u.uEye,0,0,0); gl.uniform3f(progShell.u.uColor,0.37,0.68,1.0);
           gl.uniform1f(progShell.u.uPow,3.0); gl.uniform1f(progShell.u.uGain,0.40); gl.uniform1f(progShell.u.uFade,sysDim);
-          drawSphere(progShell,lite?SPH_LO:SPH);
+          drawSphere(progShell,followISS?(earthNearSphere||(earthNearSphere=makeSphere(192,128))):lite?SPH_LO:SPH);
           gl.disable(gl.BLEND); gl.depthMask(true); gl.useProgram(progBody);
         }
 

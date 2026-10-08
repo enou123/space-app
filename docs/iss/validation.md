@@ -26,7 +26,7 @@ Chromium＋SwiftShaderでブラウザを実際に操作した。PCは1000×760�
 
 `node tests/earth-texture.browser.cjs`：PC／iPhone相当で成功。PCの4096／8192の実読込、スマートフォンの4096上限、横画面、画像取得失敗時の2048への復帰、再試行、軽量モードでの解放を確認した。WebGLエラー0。
 
-`node tests/iss-geometry.browser.cjs`：マウスホイールのズームと2点タッチによるピンチ、地球の見かけの半径約69.9°を確認。地球全体とISS位置マーカーの画像も保存した。回転後の地球の縁の撮影とツアー全編の最終検証は継続中。
+`node tests/iss-geometry.browser.cjs`：マウスホイールのズームと2点タッチによるピンチ、地球の見かけの半径約69.9°を確認。地球全体とISS位置マーカーの画像も保存した。回転後の地球の縁と宇宙を画像で確認した。PC／iPhone相当の既存ツアー全14機能・地表16場面・宇宙19場面・ハレー彗星の尾の伸縮も成功。パネル操作直後のイベントを同じJavaScriptタスクで送るようテストを修正し、SwiftShaderの描画待ちが自動閉鎖タイマーを超える影響を除いた。製品側のタイマー処理は変更していない。
 
 ## 通信と未検証事項
 
@@ -43,3 +43,18 @@ HTTP 403は環境の接続プロキシからの応答で、CelesTrak本体のHTT
 NASA公式GitHubのISSモデルを調査した。高解像度画像は出典・固定ミラー・ハッシュを記録したNASA BMNGの配布画像から作成したが、NASA直接ホストとのバイト照合は未検証。
 
 実機iPhone／Safari、物理GPUの性能・メモリ、ISSの実姿勢、実際のISS位置との観測照合は未検証。地球は球形、天体暦・座標変換・姿勢は観察向けの近似を含む。詳細は[実装と制約](implementation.md)を参照。
+
+## 保存した画面
+
+画像は固定した2019年のテスト日時のもので、現在のISS位置を示すものではない。
+
+- [PC：実寸のISS模型](screenshots/pc-orbit.png)
+- [PC：地球全体とISSの位置マーカー](screenshots/pc-earth-and-iss.png)
+- [PC：大気の輪郭を滑らかにした地球の縁](screenshots/pc-horizon.png)
+- [iPhone相当：地球の縁と宇宙](screenshots/phone-horizon.png)
+- [PC：8192px画像](screenshots/pc-earth-8192.png)
+- [iPhone相当：横画面](screenshots/phone-earth-landscape.png)
+
+次の環境での実通信・公開確認については[引き継ぎ事項](handoff.md)を参照。
+
+地球の縁の目視で大気シェルの粗い分割が見えたため、ISS選択中だけ地球と同じ192×128球面を使うよう調整した。最終変更後にPCの幾何・ズーム・画像確認を再実行し成功。大気シェーダーとISS以外の分割数は維持した。
