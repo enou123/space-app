@@ -1,3 +1,7 @@
+# 現在の公開状態
+
+mainへの統合・GitHub Pages公開が完了。最新結果・スナップショット404の解消・CelesTrakの一時IP遮断・未検証項目は [publication-2026-10-08.md](publication-2026-10-08.md) を参照。以下は公開前時点の検証引き継ぎ。
+
 # 公開前検証からの引き継ぎ
 
 作業ブランチ：`codex/iss-tracking`。製品コードのHEADは `9ec4a98accc55a427e44cd6a4f53e49fc8a43125`。

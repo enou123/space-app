@@ -1,0 +1,185 @@
+[
+  {
+    "profile": "PC",
+    "url": "https://enou123.github.io/space-app/",
+    "cachedElements": {
+      "norad": 25544,
+      "epoch": "2026-10-08T00:21:12.026592",
+      "fetchedAt": "2026-10-08T14:25:04.147Z"
+    },
+    "acquisitionStatus": "取得：2026年10月08日 23:25／要素基準：2026年10月08日 09:21（公開サイトのキャッシュ） 最新取得に失敗。利用可能なキャッシュを使用します。 高度 428.9 km／速度 7.66 km/s／緯度 42.52° 経度 -90.39° SGP4による推定位置。軌道変更・大気抵抗により誤差が増え、±3日以内も精度保証はありません。 ISS模型は実寸約109×73 mの模式図です。位置マーカーは大きさを表しません。",
+    "upstreamIntentionallyBlocked": true,
+    "htmlMatchesRelease": true,
+    "source": "snapshot",
+    "statusBefore": "取得：2026年10月08日 23:25／要素基準：2026年10月08日 09:21（公開サイトのキャッシュ） 最新取得に失敗。利用可能なキャッシュを使用します。 高度 428.9 km／速度 7.66 km/s／緯度 42.52° 経度 -90.39° SGP4による推定位置。軌道変更・大気抵抗により誤差が増え、±3日以内も精度保証はありません。 ISS模型は実寸約109×73 mの模式図です。位置マーカーは大きさを表しません。",
+    "statusAfter": "取得：2026年10月08日 23:25／要素基準：2026年10月08日 09:21（公開サイトのキャッシュ） 最新取得に失敗。利用可能なキャッシュを使用します。 高度 428.9 km／速度 7.66 km/s／緯度 42.56° 経度 -90.33° SGP4による推定位置。軌道変更・大気抵抗により誤差が増え、±3日以内も精度保証はありません。 ISS模型は実寸約109×73 mの模式図です。位置マーカーは大きさを表しません。",
+    "date1": "2026年10月08日 23:32（日本時間）",
+    "realScale": true,
+    "realTimeButton": true,
+    "skyCamera": true,
+    "dragWheelAndRecenter": true,
+    "earthResolution": 8192,
+    "nativeResolution": 4096,
+    "capabilities": {
+      "memory": 8,
+      "cores": 3,
+      "maxTextureSize": 8192
+    },
+    "optional8192WithSimulatedCapabilities": true,
+    "gl": {
+      "error": 0,
+      "lost": false,
+      "draws": 2614
+    },
+    "jsErrors": [],
+    "errors": [
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    ],
+    "failed": [
+      {
+        "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=JSON",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      }
+    ],
+    "network": [
+      {
+        "url": "https://enou123.github.io/space-app/assets/textures/earth-blue-marble-2048.jpg",
+        "status": 200
+      },
+      {
+        "url": "https://raw.githubusercontent.com/enou123/space-app/iss-data/latest.json",
+        "status": 200
+      },
+      {
+        "url": "https://enou123.github.io/space-app/assets/textures/earth-blue-marble-4096.jpg",
+        "status": 200
+      },
+      {
+        "url": "https://enou123.github.io/space-app/assets/textures/earth-blue-marble-8192.jpg",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "profile": "iPhone-portrait",
+    "url": "https://enou123.github.io/space-app/",
+    "cachedElements": {
+      "norad": 25544,
+      "epoch": "2026-10-08T00:21:12.026592",
+      "fetchedAt": "2026-10-08T14:25:04.147Z"
+    },
+    "acquisitionStatus": "取得：2026年10月08日 23:25／要素基準：2026年10月08日 09:21（公開サイトのキャッシュ） 最新取得に失敗。利用可能なキャッシュを使用します。 高度 430.0 km／速度 7.66 km/s／緯度 47.76° 経度 -77.22° SGP4による推定位置。軌道変更・大気抵抗により誤差が増え、±3日以内も精度保証はありません。 ISS模型は実寸約109×73 mの模式図です。位置マーカーは大きさを表しません。",
+    "upstreamIntentionallyBlocked": true,
+    "htmlMatchesRelease": true,
+    "source": "snapshot",
+    "statusBefore": "取得：2026年10月08日 23:25／要素基準：2026年10月08日 09:21（公開サイトのキャッシュ） 最新取得に失敗。利用可能なキャッシュを使用します。 高度 430.0 km／速度 7.66 km/s／緯度 47.76° 経度 -77.22° SGP4による推定位置。軌道変更・大気抵抗により誤差が増え、±3日以内も精度保証はありません。 ISS模型は実寸約109×73 mの模式図です。位置マーカーは大きさを表しません。",
+    "statusAfter": "取得：2026年10月08日 23:25／要素基準：2026年10月08日 09:21（公開サイトのキャッシュ） 最新取得に失敗。利用可能なキャッシュを使用します。 高度 430.0 km／速度 7.66 km/s／緯度 47.78° 経度 -77.15° SGP4による推定位置。軌道変更・大気抵抗により誤差が増え、±3日以内も精度保証はありません。 ISS模型は実寸約109×73 mの模式図です。位置マーカーは大きさを表しません。",
+    "date1": "2026年10月08日 23:35（日本時間）",
+    "realScale": true,
+    "realTimeButton": true,
+    "skyCamera": true,
+    "dragWheelAndRecenter": true,
+    "earthResolution": 4096,
+    "nativeResolution": 4096,
+    "capabilities": {
+      "memory": 8,
+      "cores": 3,
+      "maxTextureSize": 8192
+    },
+    "optional8192WithSimulatedCapabilities": false,
+    "gl": {
+      "error": 0,
+      "lost": false,
+      "draws": 5164
+    },
+    "jsErrors": [],
+    "errors": [
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    ],
+    "failed": [
+      {
+        "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=JSON",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      }
+    ],
+    "network": [
+      {
+        "url": "https://enou123.github.io/space-app/assets/textures/earth-blue-marble-2048.jpg",
+        "status": 200
+      },
+      {
+        "url": "https://raw.githubusercontent.com/enou123/space-app/iss-data/latest.json",
+        "status": 200
+      },
+      {
+        "url": "https://enou123.github.io/space-app/assets/textures/earth-blue-marble-4096.jpg",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "profile": "iPhone-landscape",
+    "url": "https://enou123.github.io/space-app/",
+    "cachedElements": {
+      "norad": 25544,
+      "epoch": "2026-10-08T00:21:12.026592",
+      "fetchedAt": "2026-10-08T14:25:04.147Z"
+    },
+    "acquisitionStatus": "取得：2026年10月08日 23:25／要素基準：2026年10月08日 09:21（公開サイトのキャッシュ） 最新取得に失敗。利用可能なキャッシュを使用します。 高度 430.4 km／速度 7.66 km/s／緯度 50.91° 経度 -62.31° SGP4による推定位置。軌道変更・大気抵抗により誤差が増え、±3日以内も精度保証はありません。 ISS模型は実寸約109×73 mの模式図です。位置マーカーは大きさを表しません。",
+    "upstreamIntentionallyBlocked": true,
+    "htmlMatchesRelease": true,
+    "source": "snapshot",
+    "statusBefore": "取得：2026年10月08日 23:25／要素基準：2026年10月08日 09:21（公開サイトのキャッシュ） 最新取得に失敗。利用可能なキャッシュを使用します。 高度 430.4 km／速度 7.66 km/s／緯度 50.91° 経度 -62.31° SGP4による推定位置。軌道変更・大気抵抗により誤差が増え、±3日以内も精度保証はありません。 ISS模型は実寸約109×73 mの模式図です。位置マーカーは大きさを表しません。",
+    "statusAfter": "取得：2026年10月08日 23:25／要素基準：2026年10月08日 09:21（公開サイトのキャッシュ） 最新取得に失敗。利用可能なキャッシュを使用します。 高度 430.4 km／速度 7.66 km/s／緯度 50.92° 経度 -62.25° SGP4による推定位置。軌道変更・大気抵抗により誤差が増え、±3日以内も精度保証はありません。 ISS模型は実寸約109×73 mの模式図です。位置マーカーは大きさを表しません。",
+    "date1": "2026年10月08日 23:38（日本時間）",
+    "realScale": true,
+    "realTimeButton": true,
+    "skyCamera": true,
+    "dragWheelAndRecenter": true,
+    "earthResolution": 4096,
+    "nativeResolution": 4096,
+    "capabilities": {
+      "memory": 8,
+      "cores": 3,
+      "maxTextureSize": 8192
+    },
+    "optional8192WithSimulatedCapabilities": false,
+    "gl": {
+      "error": 0,
+      "lost": false,
+      "draws": 5184
+    },
+    "jsErrors": [],
+    "errors": [
+      "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    ],
+    "failed": [
+      {
+        "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=JSON",
+        "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      }
+    ],
+    "network": [
+      {
+        "url": "https://enou123.github.io/space-app/assets/textures/earth-blue-marble-2048.jpg",
+        "status": 200
+      },
+      {
+        "url": "https://raw.githubusercontent.com/enou123/space-app/iss-data/latest.json",
+        "status": 200
+      },
+      {
+        "url": "https://enou123.github.io/space-app/assets/textures/earth-blue-marble-4096.jpg",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "nasa": {
+      "url": "https://assets.science.nasa.gov/content/dam/science/esd/eo/images/imagerecords/8000/8108/ipcc_bluemarble_west_front.jpg/jcr:content/renditions/cq5dam.web.1280.1280.jpeg",
+      "width": 720,
+      "height": 480
+    },
+    "status": 200
+  }
+]
