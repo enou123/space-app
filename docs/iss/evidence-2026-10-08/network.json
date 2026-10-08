@@ -1,0 +1,120 @@
+{
+  "attempts": [
+    {
+      "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE",
+      "status": 200
+    },
+    {
+      "url": "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=JSON",
+      "status": 200
+    }
+  ],
+  "tle": {
+    "status": 200,
+    "type": "cors",
+    "body": "ISS (ZARYA)             \r\n1 25544U 98067A   26281.01472253  .00004830  00000+0  96519-4 0  9991\r\n2 25544  51.6313 101.7328 0006803 235.9979 124.0363 15.48769982589240\r\n"
+  },
+  "omm": {
+    "status": 200,
+    "type": "cors",
+    "epoch": 1791418872026,
+    "raw": {
+      "elements": {
+        "OBJECT_NAME": "ISS (ZARYA)",
+        "OBJECT_ID": "1998-067A",
+        "EPOCH": "2026-10-08T00:21:12.026592",
+        "MEAN_MOTION": 15.48769982,
+        "ECCENTRICITY": 0.00068037,
+        "INCLINATION": 51.6313,
+        "RA_OF_ASC_NODE": 101.7328,
+        "ARG_OF_PERICENTER": 235.9979,
+        "MEAN_ANOMALY": 124.0363,
+        "EPHEMERIS_TYPE": 0,
+        "CLASSIFICATION_TYPE": "U",
+        "NORAD_CAT_ID": 25544,
+        "ELEMENT_SET_NO": 999,
+        "REV_AT_EPOCH": 58924,
+        "BSTAR": 0.00009651885,
+        "MEAN_MOTION_DOT": 0.0000483,
+        "MEAN_MOTION_DDOT": 0
+      },
+      "fetchedAt": "2026-10-08T13:37:27.234Z"
+    },
+    "altitude": 421.68343530913535
+  },
+  "cases": [
+    {
+      "mode": "cors-denied",
+      "failed": true,
+      "busy": false,
+      "source": "cache",
+      "epoch": 1791418872026,
+      "fetchedAt": "2026-10-08T13:37:27.234Z",
+      "visible": true,
+      "elapsedMs": 27.400000000023283
+    },
+    {
+      "mode": "http-error",
+      "failed": true,
+      "busy": false,
+      "source": "cache",
+      "epoch": 1791418872026,
+      "fetchedAt": "2026-10-08T13:37:27.234Z",
+      "visible": true,
+      "elapsedMs": 66
+    },
+    {
+      "mode": "invalid",
+      "failed": true,
+      "busy": false,
+      "source": "cache",
+      "epoch": 1791418872026,
+      "fetchedAt": "2026-10-08T13:37:27.234Z",
+      "visible": true,
+      "elapsedMs": 41.39999999990687
+    },
+    {
+      "mode": "timeout",
+      "failed": true,
+      "busy": false,
+      "source": "cache",
+      "epoch": 1791418872026,
+      "fetchedAt": "2026-10-08T13:37:27.234Z",
+      "visible": true,
+      "elapsedMs": 10050.599999999977
+    }
+  ],
+  "empty": {
+    "failed": true,
+    "data": null,
+    "visible": false
+  },
+  "stale": {
+    "failed": true,
+    "visible": false
+  },
+  "snapshot": {
+    "source": "snapshot",
+    "failed": true,
+    "visible": true
+  },
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Access to fetch at 'http://fault-test-origin/cors-denied' from origin 'http://app-test-origin' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Access to fetch at 'http://fault-test-origin/cors-denied' from origin 'http://app-test-origin' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Access to fetch at 'http://fault-test-origin/cors-denied' from origin 'http://app-test-origin' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Access to fetch at 'http://fault-test-origin/cors-denied' from origin 'http://app-test-origin' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Access to fetch at 'http://fault-test-origin/cors-denied' from origin 'http://app-test-origin' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Access to fetch at 'http://fault-test-origin/cors-denied' from origin 'http://app-test-origin' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED"
+  ]
+}

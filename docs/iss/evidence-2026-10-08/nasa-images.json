@@ -1,0 +1,32 @@
+{
+  "images": [
+    {
+      "url": "https://assets.science.nasa.gov/content/dam/science/esd/eo/images/imagerecords/8000/8108/ipcc_bluemarble_west_front.jpg/jcr:content/renditions/cq5dam.web.1280.1280.jpeg",
+      "width": 720,
+      "height": 480,
+      "complete": true
+    },
+    {
+      "url": "assets/textures/earth-blue-marble-2048.jpg",
+      "width": 2048,
+      "height": 1024,
+      "complete": true
+    },
+    {
+      "url": "assets/textures/earth-blue-marble-4096.jpg",
+      "width": 4096,
+      "height": 2048,
+      "complete": true
+    },
+    {
+      "url": "assets/textures/earth-blue-marble-8192.jpg",
+      "width": 8192,
+      "height": 4096,
+      "complete": true
+    }
+  ],
+  "navigation": {
+    "status": 200,
+    "finalURL": "https://science.nasa.gov/earth/earth-observatory/collections/blue-marble/"
+  }
+}

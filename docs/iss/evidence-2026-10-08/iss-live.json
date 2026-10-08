@@ -1,0 +1,38 @@
+[
+  {
+    "profile": "PC",
+    "distanceKm": 6798.120168391831,
+    "altitudeKm": 430.2886895706206,
+    "speedKmS": 7.655804365099386,
+    "movementKmS": 7.6557863488310565,
+    "source": "live",
+    "errors": [],
+    "restoration": true,
+    "staleHidden": true,
+    "ground": false
+  },
+  {
+    "profile": "iPhone-portrait",
+    "distanceKm": 6799.0859168536,
+    "altitudeKm": 434.1992504224354,
+    "speedKmS": 7.653195746174191,
+    "movementKmS": 7.653134413348031,
+    "source": "live",
+    "errors": [],
+    "restoration": true,
+    "staleHidden": true,
+    "ground": false
+  },
+  {
+    "profile": "iPhone-landscape",
+    "distanceKm": 6799.831565134888,
+    "altitudeKm": 433.9327767061977,
+    "speedKmS": 7.652910905802554,
+    "movementKmS": 7.65283989013841,
+    "source": "live",
+    "errors": [],
+    "restoration": true,
+    "staleHidden": true,
+    "ground": false
+  }
+]

@@ -34,7 +34,7 @@ NASAのリポジトリは公開素材を “free and without copyright” と説
 
 ## フェーズ4：高精細な地球
 
-従来の2048画像はバイト単位で維持する。NASA Blue Marble Next Generationの21600×10800の公開画像の配布ミラーから、4096×2048／8192×4096のJPEGを作成して同梱した。画像の出典、NASAのクレジット、元ファイルと生成物のSHA-256、再生成方法は `assets/textures/README.md` と `scripts/build-earth-textures.py` に記録している。直接のNASAホストとのバイト照合はこの環境では未検証。
+従来の2048画像はバイト単位で維持する。NASA Blue Marble Next Generationの21600×10800の公開画像の配布ミラーから、4096×2048／8192×4096のJPEGを作成して同梱した。画像の出典、NASAのクレジット、元ファイルと生成物のSHA-256、再生成方法は `assets/textures/README.md` と `scripts/build-earth-textures.py` に記録している。2026-10-08の新環境でNASA公式の現在の画像ホストから原画像を取得し、ミラーの原画像とSHA-256が一致することを確認した。
 
 自動選択は通常2048、完全実縮尺で地球の近く／ISSの場合に4096。8192は明示的な選択で、GPUの最大テクスチャサイズ・端末のメモリ・CPUコアの報告値で制限する。スマートフォンは4096以下、軽量モードは2048以下。報告値がない場合は保守的に4096以下を使う。これは実GPU性能を測定するベンチマークではない。8192はRGBだけで約96MiB、RGBAなら約128MiB、さらにミップマップや画像デコードのメモリが必要になるため、自動では選択しない。
 
@@ -50,4 +50,4 @@ node tests/iss.browser.cjs
 
 数値の参照値はPython `sgp4` 2.27、Vallado C++実装、WGS72で、satellite.jsのREADMEに掲載された2019年6月5日のISS TLEから生成した。これはテスト専用。公開アプリに過去の要素を最新データとして同梱しない。位置差5cm／速度差0.05mm/sは**別実装との照合誤差**で、ISSの実際の位置の予測誤差ではない。JavaScriptのJulian dateによる数十μsの丸めも含む。
 
-ブラウザのテストはChromium/SwiftShader上のPC・iPhone 13相当の縦／横画面。iPhone実機、Safari、物理GPUの速度・メモリは別途検証が必要。クラウド環境はCelesTrakとNASAの直接のホストが未許可であり、実通信の成功を仮定しない。静的スナップショット・通信失敗・期限切れをテストで再現する。
+ブラウザのテストはChromium/SwiftShader上のPC・iPhone 13相当の縦／横画面。iPhone実機、Safari、物理GPUの速度・メモリは別途検証が必要。初期環境では外部通信が未許可だったが、2026-10-08の新環境ではCelesTrakとNASAの対象ホストが許可され、実通信を確認した。Chromiumの通常のCORS付きfetchでTLEとOMM JSONの取得に成功し、CORS拒否・HTTPエラー・タイムアウト・不正データ・期限切れは別の制御されたブラウザーテストで検証する。

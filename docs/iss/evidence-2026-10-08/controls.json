@@ -1,0 +1,38 @@
+[
+  {
+    "profile": "PC",
+    "errors": [],
+    "nativeControls": true,
+    "dateInput": true,
+    "telescopeZoom": true,
+    "surfaceScaleRestoration": true,
+    "viewport": [
+      1000,
+      760
+    ]
+  },
+  {
+    "profile": "iPhone",
+    "errors": [],
+    "nativeControls": true,
+    "dateInput": true,
+    "telescopeZoom": true,
+    "surfaceScaleRestoration": true,
+    "viewport": [
+      390,
+      844
+    ]
+  },
+  {
+    "profile": "iPhone",
+    "errors": [],
+    "nativeControls": true,
+    "dateInput": true,
+    "telescopeZoom": true,
+    "surfaceScaleRestoration": true,
+    "viewport": [
+      844,
+      390
+    ]
+  }
+]

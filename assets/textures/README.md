@@ -31,14 +31,18 @@ no NASA endorsement or NASA logo is implied.
 Original collection: https://visibleearth.nasa.gov/collection/1484/blue-marble
 Media guidelines: https://www.nasa.gov/nasa-brand-center/images-and-media/
 
-Because the managed environment cannot access the NASA image host directly,
-the source was obtained on 2026-10-08 from this pinned distribution mirror:
+The source was initially obtained on 2026-10-08 from this pinned distribution mirror:
 
 https://github.com/stdcout1/airline3d/blob/7d261a4066f8600d808fbe274d6234267619015f/airports/world.topo.bathy.200412.3x21600x10800.jpg
 
 Source SHA-256: `3006c58b1272362db0a8c2df02dc07cea4b12dfe820b7dc4a159a075caf5d4d4`.
-The source filename, geographic content and dimensions match BMNG. A byte
-comparison with NASA's direct original host has not been verified in this environment.
+On 2026-10-08, the new cloud environment downloaded the original directly from
+NASA's current image host (HTTP 200, 29,868,040 bytes, 21600 × 10800):
+
+https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/december/world.topo.bathy.200412.3x21600x10800.jpg
+
+Its SHA-256 is identical to the pinned mirror's source hash above. NASA's current
+download collection is https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography-bathymetry/.
 The optional images are December composites; the retained 2048 image is May.
 Neither is a live photograph or an accurate depiction of current clouds, ice or seasons.
 The app retains its original land/ocean mask, rotation, day/night and atmosphere shaders.

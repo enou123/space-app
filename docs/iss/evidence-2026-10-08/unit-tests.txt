@@ -1,0 +1,31 @@
+✔ Solar disk: no overlap, total eclipse, annular eclipse, partial eclipse (0.829384ms)
+✔ A planet blocks sunlight only when it is between the Sun and the receiver (0.193052ms)
+✔ A moon shadow intersects the lit surface, not the far side (8.319838ms)
+✔ Eclipse and occultation use different viewing lines (0.194214ms)
+✔ 34 unique approved artworks and both complete, checksum-verified serving variants (249.454778ms)
+✔ three-guide fit preserves proportions, centroid and handedness (16.047662ms)
+✔ default illustration opacity matches its visible slider and manual (16.131718ms)
+✔ legacy projection retained for all 34, anchors and image hashes unchanged (35.07638ms)
+✔ catalog is exactly the original star names, positions and lines (3.303618ms)
+✔ five semantic fits improve rather than just matching centers (21.170594ms)
+✔ numeric transforms keep pivot, support mirror and reject invalid values (0.525264ms)
+✔ symmetric guides do not fail when one handedness yields zero scale (0.561349ms)
+✔ apply/export rejects stale or invalid data before mutation and keeps other entries (1.287689ms)
+✔ all calibrated bodies have meaningful guides and consistent persisted transforms (58.18667ms)
+✔ two-star fitting prefers the existing handedness when both candidates fit equally (0.395419ms)
+✔ Resolution honors GPU size, lite mode, phone and memory/CPU limits (8.647675ms)
+✔ Original 2048 map is byte-for-byte unchanged; high maps have recorded provenance hashes (92.421178ms)
+✔ Image failure and GPU upload failure return to original; stale loads cannot overwrite current selection (0.944374ms)
+✔ ISS SGP4 agrees with independent Python/Vallado vectors (position < 5 cm, speed < 0.05 mm/s) (14.321287ms)
+✔ Earth basis mapping preserves ISS distance and geodetic longitude/latitude (12.28696ms)
+✔ Past/future > three days is never propagated; malformed data is rejected (0.644011ms)
+✔ Cache survives upstream/snapshot failure, corrupt storage and write-denied storage (14.079623ms)
+✔ Static GitHub snapshot works without CORS; newest epoch wins; concurrent refresh is deduplicated (43.874942ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2478.397945
