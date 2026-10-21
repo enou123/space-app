@@ -8,6 +8,7 @@ on:
     paths:
       - .github/workflows/refresh-iss.yml
       - scripts/refresh-iss.cjs
+      - tests/refresh-iss.test.cjs
       - assets/iss-orbit.js
 permissions:
   contents: write
@@ -23,8 +24,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Test ISS refresh failure handling
+        run: node --test tests/refresh-iss.test.cjs
+      - name: Retrieve last published ISS snapshot
+        shell: bash
+        run: |
+          if git fetch --depth=1 origin iss-data; then
+            if ! git show FETCH_HEAD:latest.json > /tmp/iss-previous.json; then
+              rm -f /tmp/iss-previous.json
+              echo 'Existing snapshot was not readable; no fallback available'
+            fi
+          else
+            echo 'Snapshot branch not available; no fallback available'
+          fi
       - name: Fetch and validate NORAD 25544
-        run: node scripts/refresh-iss.cjs /tmp/iss-latest.json
+        run: node scripts/refresh-iss.cjs /tmp/iss-latest.json /tmp/iss-previous.json
       - name: Publish static snapshot without changing application branch
         shell: bash
         run: |
