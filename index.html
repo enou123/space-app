@@ -332,7 +332,7 @@
 <div id="oortTag" class="bigTag"><div class="t" style="color:#a9c4e6;">OORT CLOUD</div>
   <div class="s">オールトの雲　／　約2,000〜100,000 AU の球殻（理論上の構造）</div></div>
 <div id="title"><h1>SOLAR SYSTEM</h1>
-  <p>惑星・準惑星・衛星・小惑星帯・カイパーベルト・オールトの雲・探査機・彗星・近傍恒星・星座・球状星団・銀河系・局所銀河群・日食と月食・光の旅・探査機の航跡・はやぶさ/はやぶさ2<br>
+  <p>惑星・準惑星・衛星・小惑星帯・カイパーベルト・オールトの雲・探査機・彗星・近傍恒星・星座・球状星団・銀河系・局所銀河群・日食と月食・光の旅・探査機の航跡・はやぶさ/はやぶさ2/MMX<br>
   軌道要素と恒星位置は実測値／距離と大きさは可視化のため圧縮　　<b style="color:#a8c8f0;">天体名をクリックすると解説が出ます</b></p></div>
 <div id="welcome" aria-label="宇宙シミュレーターの入口">
   <div class="eyebrow">EXPLORE THE UNIVERSE</div>
@@ -774,7 +774,8 @@
     {jp:"ニューホライズンズ",model:5,dist:65.70,vel:2.865,lon:288.50,lat:2.00,col:[0.72,0.88,0.96],dish:2.1,note:"本体 約0.7×2.1×2.7 m の三角柱／アンテナ直径 2.1 m"},
     {jp:"はやぶさ",jpn:true,model:1,dist:1,vel:0,lon:0,lat:0,col:[1.00,0.62,0.55],note:"本体 1.0×1.6×1.1 m／太陽電池パドル展開時 約6 m"},
     {jp:"はやぶさ2",jpn:true,model:2,dist:1,vel:0,lon:0,lat:0,col:[0.62,1.00,0.72],note:"本体 1.0×1.6×1.25 m／太陽電池パドル展開時 約6 m"},
-    {jp:"カッシーニ",ends:true,model:6,dist:1,vel:0,lon:0,lat:0,col:[1.00,0.80,0.45],dish:4.0,note:"高さ 6.8 m／アンテナ直径 4 m／ホイヘンス・プローブ直径 2.7 m"}
+    {jp:"カッシーニ",ends:true,model:6,dist:1,vel:0,lon:0,lat:0,col:[1.00,0.80,0.45],dish:4.0,note:"高さ 6.8 m／アンテナ直径 4 m／ホイヘンス・プローブ直径 2.7 m"},
+    {jp:"MMX",jpn:true,schematic:true,model:7,dist:1,vel:0,lon:0,lat:0,col:[1.00,0.76,0.42],note:"火星衛星探査機／3モジュール・太陽電池パドル（概形模型）／打ち上げ済み／航跡は模式表示・将来の日付は仮置き"}
   ];
   PROBES.forEach(p=>{ const lo=p.lon*DEG, la=p.lat*DEG;
     p.dir=[Math.cos(la)*Math.cos(lo),Math.sin(la),Math.cos(la)*Math.sin(lo)];
@@ -790,7 +791,12 @@
        区間の途中は、距離と方向をなめらかに補間した近似（実際の軌道計算ではない）。
        2026-09-25 以降は、NASA/JPL の位置・速度からの直線外挿。
      ============================================================ */
+  // MMXの打ち上げはISAS公表の実績（JST）。以降の各月1日は表示用の仮置き。
   const PROBE_ROUTE={
+    "MMX":[[2026,10,20,2,"打ち上げ成功（H3ロケット10号機・日本時間4時41分03秒）",0,Date.UTC(2026,9,19,19,41,3)],
+      [2027,8,1,3,"火星に到着。フォボス・ダイモスを探査（予定・模式表示、日付は仮置き）",1],
+      [2030,8,1,3,"火星圏を出発（予定・模式表示、日付は仮置き）"],
+      [2031,8,1,2,"フォボスの試料を地球へ届ける（予定・模式表示、日付は仮置き）"]],
     "ボイジャー1号":[[1977,9,5,2,"打ち上げ"],[1979,3,5,4,"木星に最接近"],[1980,11,12,5,"土星に最接近（タイタンを観測し、太陽系の外へ）"]],
     "ボイジャー2号":[[1977,8,20,2,"打ち上げ"],[1979,7,9,4,"木星に最接近"],[1981,8,26,5,"土星に最接近"],
                      [1986,1,24,6,"天王星に最接近（人類初）"],[1989,8,25,7,"海王星に最接近（人類初）"]],
@@ -825,7 +831,7 @@
     "はやぶさ2":[[2019,2,22,"リュウグウに第1回タッチダウン"],[2019,4,5,"衝突装置で人工クレーターを作る（世界初）"],
                 [2019,7,11,"第2回タッチダウン（地下の物質を採取）"]]
   };
-  const z2=(n)=>String(n).padStart(2,"0"), ymd=(w)=>w[0]+"年"+z2(w[1])+"月"+z2(w[2])+"日", yOf=(w)=>yearsSinceJ2000(Date.UTC(w[0],w[1]-1,w[2],12));
+  const z2=(n)=>String(n).padStart(2,"0"), ymd=(w)=>w[0]+"年"+z2(w[1])+"月"+z2(w[2])+"日", yOf=(w)=>yearsSinceJ2000(w[6]!==undefined?w[6]:Date.UTC(w[0],w[1]-1,w[2],12));
   PROBES.forEach(p=>{ if(p.jpn) p.ends=true; p.wp=PROBE_ROUTE[p.jp].map(w=>({t:yOf(w),bi:(typeof w[3]==="number")?w[3]:undefined,
       ast:(typeof w[3]==="string")?w[3]:undefined,stay:!!w[5],ev:w[4],ds:(w[4].indexOf("予定")>=0)?w[0]+"年"+z2(w[1])+"月（予定）":ymd(w)}));
     if(!p.ends) p.wp.push({t:PROBE_EPOCH_Y,fix:[p.dir[0]*p.dist,p.dir[1]*p.dist,p.dir[2]*p.dist]});
@@ -2116,8 +2122,22 @@
     {g:"b",t:[-0.95,-0.55,-1.15],s:[0.40,0.30,0.35],c:SILV,k:0},                    // 観測機器（カメラなど）の台
     {g:"c",t:[-0.95,-0.55,-0.75],s:[0.12,0.12,0.08],c:BLK,k:3}
   ];
-  const JP_MODELS={1:HAYABUSA_PARTS,2:HAYABUSA2_PARTS,3:VOYAGER_PARTS,4:PIONEER_PARTS,5:NEWHORIZONS_PARTS,6:CASSINI_PARTS}, JP_K=0.62;
-  const MODEL_K={1:0.62,2:0.62,3:0.50,4:0.62,5:0.72,6:0.42};
+  // MMX：帰還・探査・往路の3モジュール、左右のパドル、アンテナと採取装置の概形。
+  // 部品寸法は視認用の比率であり、設計図に基づく精密模型ではない。
+  const MMX_PARTS=[
+    {g:"b",t:[0,0,-0.95],s:[0.65,0.7,0.45],c:GOLD,k:2},
+    {g:"b",t:[0,0,0],s:[0.75,0.8,0.5],c:GOLD,k:2},
+    {g:"b",t:[0,0,0.85],s:[0.55,0.6,0.35],c:WHITE,k:0},
+    {g:"b",t:[0,-2.2,0],s:[0.65,1.1,0.04],c:PANEL,k:1},
+    {g:"b",t:[0,2.2,0],s:[0.65,1.1,0.04],c:PANEL,k:1},
+    {g:"b",t:[0,-0.95,0],s:[0.08,0.25,0.06],c:MET,k:0},
+    {g:"b",t:[0,0.95,0],s:[0.08,0.25,0.06],c:MET,k:0},
+    {g:"s",t:[0,0,1.28],s:[0.55,0.55,0.08],c:WHITE,k:0},
+    {g:"c",t:[0.5,0,-0.85],s:[0.09,0.09,0.7],c:DARK,k:3},
+    {g:"s",t:[-0.3,0,0.85],s:[0.24,0.24,0.15],c:DARK,k:3}
+  ];
+  const JP_MODELS={1:HAYABUSA_PARTS,2:HAYABUSA2_PARTS,3:VOYAGER_PARTS,4:PIONEER_PARTS,5:NEWHORIZONS_PARTS,6:CASSINI_PARTS,7:MMX_PARTS}, JP_K=0.62;
+  const MODEL_K={1:0.62,2:0.62,3:0.50,4:0.62,5:0.72,6:0.42,7:0.62};
   const cam={th:0.85,ph:1.00,d:78,tth:0.85,tph:1.00,td:78};
   const focus=[0,0,0],pan=[0,0,0];
   let followIdx=-1, followMoon=null, followProbe=-1, followStar=-1, starLookSun=false, starFlight=null, mode=0, lx=0, ly=0;
@@ -2306,6 +2326,8 @@
     [["打ち上げ","2014年12月3日"],["探査","リュウグウ・トリフネ・1998 KY26（予定）"],["本体寸法","1.0×1.6×1.25 m"],["アンテナ","平面アンテナ×2"],["状態","拡張ミッション運用中"]]];
   INFO.probe["カッシーニ"]=["NASAとヨーロッパ・イタリアの宇宙機関による土星探査機。1997年10月15日に打ち上げられ、金星・地球・木星のスイングバイを経て2004年7月1日に土星を回る軌道に入りました。2005年1月14日には小型探査機ホイヘンスを衛星タイタンに着陸させています。13年間、土星と環・衛星を観測し、エンケラドゥスの南極から噴き出す水を発見。2017年9月15日、土星の大気に突入して運用を終えました。",
     [["打ち上げ","1997年10月15日"],["探査","土星・環・衛星（タイタン、エンケラドゥスなど）"],["高さ","6.8 m"],["アンテナ直径","4 m"],["状態","2017年9月15日 運用終了"]]];
+  INFO.probe["MMX"]=["JAXAの火星衛星探査計画（Martian Moons eXploration）。2026年10月20日4時41分03秒（日本時間）、種子島宇宙センターからH3ロケット10号機で打ち上げられました。フォボスから試料を採取して地球へ持ち帰り、フォボスとダイモスの観測から火星の衛星の起源を調べます。この表示は計画を紹介する概形模型と模式航跡です。火星圏での動きは表示用の周回で、衛星への接近・着陸を再現したものではありません。打ち上げ実績の出典： https://www.isas.jaxa.jp/missions/spacecraft/current/mmx.html 。",
+    [["探査対象","火星の衛星フォボス・ダイモス"],["目的","フォボスの試料を地球へ持ち帰る"],["打ち上げ","2026年10月20日 4時41分03秒（日本時間）"],["ロケット","H3ロケット10号機"],["状態","打ち上げ済み"],["今後の計画","2027年火星圏到達・2030年離脱・2031年帰還（予定）"],["航跡","模式表示。将来の月日は仮置き、実飛行位置ではありません"],["模型","3モジュールと太陽電池パドルの概形"]]];
   INFO.ast={
     "イトカワ":["はやぶさが着陸した、ラッコのような形の小惑星。岩のかけらが重力で寄り集まった「ラブルパイル天体」です。",[["大きさ","535×294×209 m"],["軌道長半径","1.32 AU"],["公転周期","1.52 年"]]],
     "リュウグウ":["はやぶさ2が着陸した、そろばんの珠のような形の小惑星。持ち帰ったサンプルから、アミノ酸などの有機物や水の存在が確認されました。",[["平均直径","約900 m"],["軌道長半径","1.19 AU"],["公転周期","1.30 年"]]],
@@ -2394,7 +2416,7 @@
   {const option=document.createElement("option");option.value="iss";option.textContent="国際宇宙ステーション（ISS）";$("moonTravelSelect").appendChild(option);}
   VISIT_STARS.forEach((s,i)=>{ const option=document.createElement("option"); option.value=String(i);
     option.textContent=s.jp+(s.groupType==="cluster"?"（星団）":s.groupType==="multiple"?"（三重星系）":""); $("starTravelSelect").appendChild(option); });
-  PROBES.forEach((p,i)=>{ const btn=document.createElement("button"); btn.textContent=p.jp; btn.className="probe"; btn.dataset.fp=String(i); $("probeRow").appendChild(btn); });
+  PROBES.forEach((p,i)=>{ const btn=document.createElement("button"); btn.textContent=p.jp; btn.title=p.note; btn.className="probe"; btn.dataset.fp=String(i); $("probeRow").appendChild(btn); });
   function setFollowUI(){
     if(followISS&&(followIdx>=0||followMoon||followProbe>=0||followStar>=0))leaveISS();
     if(followIdx>=0||followMoon||followProbe>=0){ followStar=-1; starLookSun=false; starFlight=null; }
@@ -2437,7 +2459,7 @@
     { const p=PROBES[i]; updateProbeWP(); if(!probeState(p,years)){ const w=p.wp.find(w=>w.stay)||p.wp[1]; years=w.t+0.1; prevYT=years;
         nowLock=false; setDateInput(dateFromYears(years)); toast("<b>"+p.jp+"</b>　表示中の日付では飛行していないため、"+fmtJST(J2000_MS+years*YEAR_DAYS*86400000).slice(0,-6)+"へ移動しました。",7); } }
     followProbe=i; followIdx=-1; followMoon=null; followStar=-1; starLookSun=false; surfaceMode=false; updateViewUI(); setFollowUI(); pan[0]=pan[1]=pan[2]=0;
-    showProbe=true; $("bProbe").classList.add("on"); focusProbe(i); }; });
+    showProbe=true; $("bProbe").classList.add("on"); focusProbe(i); if(PROBES[i].schematic) toast("MMX：2026年10月20日打ち上げ済み。航跡・模型は概形、将来の月日は仮置きです。",10); }; });
   setFollowUI();
   function updateViewUI(){
     $("moonRotationNote").hidden=!(followMoon&&BODIES[followMoon.body].moons[followMoon.moon].spinDay);
@@ -2626,7 +2648,7 @@
   $("bNowSkyKumamoto").onclick=()=>showCurrentSky("熊本",KUMAMOTO_LAT,KUMAMOTO_LON);
   $("bNowSkyAtlanta").onclick=()=>showCurrentSky("アトランタ",ATLANTA_LAT,ATLANTA_LON);
   /* ---- 探査機の旅（ズームアウト・ツアーと同じく「終了する」ボタン・Escキーで止められる）---- */
-  const PT_SPAN={"ボイジャー1号":[1977,8,25,2013,1,1],"ボイジャー2号":[1977,8,5,1990,6,1],"パイオニア10号":[1972,2,15,1984,1,1],
+  const PT_SPAN={"MMX":[2026,10,19,2031,8,1],"ボイジャー1号":[1977,8,25,2013,1,1],"ボイジャー2号":[1977,8,5,1990,6,1],"パイオニア10号":[1972,2,15,1984,1,1],
     "パイオニア11号":[1973,3,20,1980,6,1],"ニューホライズンズ":[2006,1,5,2019,4,1],"はやぶさ":[2003,4,25,2010,6,13],"はやぶさ2":[2014,11,20,2031,8,20],"カッシーニ":[1997,10,1,2017,9,20]};
   function startProbeTour(idx){ if(tourActive) endTour(); if(lt.on) endLight(); if(pt.on) endProbeTour(true);
     resetView(); setScale0(); nowLock=false;
@@ -2636,7 +2658,7 @@
     if(idx<0){ a=Date.UTC(1972,1,15); b=Date.UTC(1990,0,1); title="外惑星探査の旅";
       desc="パイオニア10号・11号、ボイジャー1号・2号が、木星・土星・天王星・海王星へ。<br>惑星に最接近した日を通るように描いた近似の経路です。"; }
     else { const p=PROBES[idx], q=PT_SPAN[p.jp]; a=Date.UTC(q[0],q[1]-1,q[2]); b=Date.UTC(q[3],q[4]-1,q[5]);
-      title=p.jp+"の旅"; desc=(p.jpn?"日本の小惑星探査機。打ち上げ・スイングバイ・小惑星への到着・帰還の日付を通る近似の経路です。"
+      title=p.jp+"の旅"; desc=(p.schematic?"火星衛星探査計画。地球→火星圏での探査→地球帰還を紹介する模式表示です。2026年10月20日の打ち上げは実績です。将来の月日は仮置き、航跡は実飛行位置ではありません。":p.jpn?"日本の小惑星探査機。打ち上げ・スイングバイ・小惑星への到着・帰還の日付を通る近似の経路です。"
         :"打ち上げ日と惑星への最接近日を通るように描いた近似の経路です。")+"<br>ドラッグで向きを変えられます。止めるときは右上の「終了する」。"; }
     pt.y0=yearsSinceJ2000(a); pt.y1=yearsSinceJ2000(b); years=pt.y0; prevYT=years;
     pt.base=(pt.y1-pt.y0)*YEAR_SEC/(idx<0?85:(PROBES[idx].jpn?70:60));
